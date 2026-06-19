@@ -33,7 +33,8 @@
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    padding: 0.6rem 0.8rem;
+    padding: calc(0.4rem + env(safe-area-inset-top)) 0.7rem 0.4rem;
+    flex: none;
   }
   .title {
     flex: 1;

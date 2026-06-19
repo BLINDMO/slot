@@ -62,9 +62,9 @@
 
   function resize() {
     if (!wrap || !canvas) return;
-    W = Math.min(wrap.clientWidth, 520);
+    W = Math.min((wrap.clientWidth || 360) - 6, 520);
     // Fill the available height so there's no dead gap above/below the board.
-    H = Math.max(340, Math.min(wrap.clientHeight, W * 1.7));
+    H = Math.max(300, Math.min((wrap.clientHeight || W) - 2, Math.round(W * 1.7)));
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = W * dpr;
     canvas.height = H * dpr;
@@ -253,14 +253,14 @@
     position: relative;
     display: grid;
     place-items: center;
-    padding: 0.4rem;
+    padding: 0.4rem 0;
   }
   canvas {
     display: block;
     border-radius: var(--radius-lg);
     background: radial-gradient(120% 90% at 50% 0%, #10202b, #07090f 75%);
-    border: 1px solid var(--line);
-    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.6), 0 0 0 3px rgba(25, 195, 201, 0.25);
+    border: 1px solid color-mix(in srgb, var(--c, #19c3c9) 35%, var(--line));
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.6);
   }
   .flash {
     position: absolute;
@@ -303,16 +303,17 @@
   }
 
   .panel {
+    flex: none;
     background: var(--panel-grad);
     border-top: 1px solid var(--line);
-    padding: 0.7rem 0.9rem calc(0.9rem + env(safe-area-inset-bottom));
+    padding: 0.55rem 0.7rem calc(0.55rem + env(safe-area-inset-bottom));
   }
   .rowctrl {
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 0.6rem;
     align-items: end;
-    margin-bottom: 0.7rem;
+    margin-bottom: 0.55rem;
   }
   .field-col {
     display: flex;

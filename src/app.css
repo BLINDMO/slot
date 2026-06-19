@@ -58,8 +58,6 @@ body {
     radial-gradient(140% 55% at 50% -10%, #182a33 0%, rgba(0, 0, 0, 0) 60%),
     var(--bg);
   background-attachment: fixed;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
-    env(safe-area-inset-left);
 }
 
 button {

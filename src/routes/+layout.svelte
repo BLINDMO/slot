@@ -16,9 +16,13 @@
 
 <style>
   main {
-    max-width: 640px;
+    max-width: 480px;
     margin: 0 auto;
-    min-height: 100dvh;
+    /* Exactly the viewport: game screens fit with no page scroll; the hub (taller
+       content) scrolls inside this one container. */
+    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
   }

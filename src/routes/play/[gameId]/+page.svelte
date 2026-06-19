@@ -195,7 +195,8 @@
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    padding: 0.6rem 0.8rem;
+    padding: calc(0.4rem + env(safe-area-inset-top)) 0.7rem 0.4rem;
+    flex: none;
   }
   .topbar .title {
     flex: 1;
@@ -210,7 +211,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.4rem;
+    flex: none;
   }
   .meter .win {
     display: flex;
@@ -255,8 +257,8 @@
     display: flex;
     flex-direction: column;
     position: relative;
-    margin: 0.5rem 0.6rem;
-    padding: 0.7rem;
+    margin: 0 0.5rem;
+    padding: 0.5rem;
     border-radius: var(--radius-lg);
     /* A themed cabinet so empty space reads as atmosphere, not dead black. */
     background:
@@ -328,9 +330,10 @@
   }
 
   .panel {
+    flex: none;
     background: var(--panel-grad);
     border-top: 1px solid var(--line);
-    padding: 0.7rem 0.9rem calc(0.9rem + env(safe-area-inset-bottom));
+    padding: 0.55rem 0.7rem calc(0.55rem + env(safe-area-inset-bottom));
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
   }
   .controls {
@@ -341,16 +344,17 @@
   }
   .spin {
     height: 100%;
-    min-height: 52px;
+    min-height: 48px;
     font-family: var(--font-display);
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     letter-spacing: 2px;
   }
   .buy {
     width: 100%;
-    margin-top: 0.6rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
   .empty {
     flex: 1;

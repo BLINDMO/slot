@@ -69,13 +69,13 @@ export class SlotRenderer {
     // screen on tall phones instead of floating with dead space beneath it.
     const availW = Math.min(el.clientWidth || 360, 560);
     const availH = el.clientHeight || availW;
+    // Fill BOTH dimensions; cells may be non-square but are capped at this ratio
+    // so symbols never look grotesquely stretched on wide/short grids.
+    const RATIO_CAP = 1.7;
     let tileW = (availW - this.gap * (this.cols + 1)) / this.cols;
     let tileH = (availH - this.gap * (this.rows + 1)) / this.rows;
-    // Allow cells to be up to 1.4:1 (tall) so wide/short grids fill the height
-    // instead of collapsing to a small centred square with big top/bottom voids.
-    const MAX_ASPECT = 1.5;
-    tileH = Math.min(tileH, tileW * MAX_ASPECT);
-    tileW = Math.min(tileW, tileH * MAX_ASPECT);
+    if (tileH > tileW * RATIO_CAP) tileH = tileW * RATIO_CAP;
+    if (tileW > tileH * RATIO_CAP) tileW = tileH * RATIO_CAP;
     this.tileW = Math.max(24, Math.floor(tileW));
     this.tileH = Math.max(24, Math.floor(tileH));
     this.w = this.cols * this.tileW + this.gap * (this.cols + 1);

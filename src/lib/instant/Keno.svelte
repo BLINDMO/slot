@@ -137,7 +137,9 @@
       <span class="live">{liveMatches} match{liveMatches === 1 ? '' : 'es'}</span>
     {/if}
   </div>
+</div>
 
+<section class="panel">
   <div class="paystrip">
     {#each payEntries as e}
       <div class="pay" class:on={resultRow === e.matches}>
@@ -146,9 +148,6 @@
       </div>
     {/each}
   </div>
-</div>
-
-<section class="panel">
   <div class="rowctrl">
     <span class="lbl">Risk</span>
     <div class="segment">
@@ -174,29 +173,28 @@
     flex: 1;
     min-height: 0;
     position: relative;
-    padding: 1rem 0.9rem;
-    overflow-y: auto;
+    padding: 0.6rem 0.8rem 0.3rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 1rem;
-    /* Atmospheric backdrop so the board never floats on dead black. */
-    background: radial-gradient(120% 55% at 50% 12%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%);
+    gap: 0.5rem;
+    background: radial-gradient(120% 55% at 50% 8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%);
   }
+  /* 5×8 portrait grid fills a tall phone with large, readable tiles. */
   .grid {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 0.5rem;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.45rem;
     width: 100%;
   }
   .tile {
     aspect-ratio: 1;
-    border-radius: 10px;
+    border-radius: 12px;
     background: linear-gradient(180deg, #1c2336, #141a27);
     border: 1px solid var(--line);
     color: var(--text);
     font-weight: 700;
-    font-size: 1.05rem;
+    font-size: 1.2rem;
     transition: transform 0.06s ease, box-shadow 0.15s ease, background 0.15s ease;
   }
   .tile:active {
@@ -242,6 +240,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.3rem;
+    margin-bottom: 0.45rem;
   }
   .pay {
     flex: 1 0 auto;
@@ -300,29 +299,30 @@
   }
 
   .panel {
+    flex: none;
     background: var(--panel-grad);
     border-top: 1px solid var(--line);
-    padding: 0.7rem 0.9rem calc(0.9rem + env(safe-area-inset-bottom));
+    padding: 0.5rem 0.7rem calc(0.55rem + env(safe-area-inset-bottom));
   }
   .rowctrl {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
-    margin-bottom: 0.6rem;
+    gap: 0.25rem;
+    margin-bottom: 0.45rem;
   }
   .lbl {
-    font-size: 0.66rem;
+    font-size: 0.62rem;
     letter-spacing: 0.4px;
     color: var(--muted);
   }
   .actions {
     display: flex;
     gap: 0.5rem;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.45rem;
   }
   .actions .btn {
     flex: 1;
-    padding: 0.55rem;
+    padding: 0.5rem;
     font-size: 0.85rem;
   }
   .controls {
@@ -332,9 +332,9 @@
     align-items: end;
   }
   .play {
-    min-height: 52px;
+    min-height: 48px;
     font-family: var(--font-display);
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     letter-spacing: 2px;
   }
 </style>
