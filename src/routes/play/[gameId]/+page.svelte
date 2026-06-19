@@ -141,12 +141,7 @@
 <header class="topbar">
   <button class="icon-btn" onclick={() => goto(`${base}/`)} aria-label="Back to hub">‹</button>
   <div class="title">{game?.meta.title ?? 'Unknown game'}</div>
-  <div class="actions">
-    {#if game?.meta.playable}
-      <button class="icon-btn" onclick={() => (showInfo = true)} aria-label="Game info">ⓘ</button>
-    {/if}
-    <BalanceChip />
-  </div>
+  <BalanceChip />
 </header>
 
 {#if !game || !game.meta.playable}
@@ -156,30 +151,26 @@
   </div>
 {:else}
   <section class="stage">
-    {#if inBonus}
-      <div class="bonusband">
-        <span>FREE SPINS</span>
-        <span>{fsRemaining}/{fsTotal} LEFT</span>
-        <span>×{multiplier}</span>
-      </div>
-    {/if}
+    <div class="meter">
+      <button class="icon-btn sm" onclick={toggleSound} aria-label="Toggle sound">
+        {$settings.soundOn ? '🔊' : '🔇'}
+      </button>
+      {#if inBonus}
+        <div class="bonus">FREE SPINS · {fsRemaining}/{fsTotal} · ×{multiplier}</div>
+      {:else}
+        <div class="win" class:has={win > 0}>
+          <span class="muted">WIN</span><strong class="tabular">{fmt(displayWin)}</strong>
+        </div>
+      {/if}
+      <button class="icon-btn sm" onclick={() => (showInfo = true)} aria-label="Game info">ⓘ</button>
+    </div>
+
     <div class="board" bind:this={boardEl} style="--c:{game.meta.color}"></div>
     {#if message}<div class="overlay message">{message}</div>{/if}
     {#if banner}<div class="overlay banner {banner.cls}">{banner.label}</div>{/if}
   </section>
 
   <section class="panel">
-    <div class="hud">
-      <button class="icon-btn" onclick={toggleSound} aria-label="Toggle sound">
-        {$settings.soundOn ? '🔊' : '🔇'}
-      </button>
-      <div class="win" class:has={win > 0}>
-        <span class="muted">WIN</span>
-        <strong class="tabular">{fmt(displayWin)}</strong>
-      </div>
-      <div class="spacer"></div>
-    </div>
-
     <div class="controls">
       <BetControl disabled={busy} />
       <button class="btn btn-primary spin" onclick={() => spin(false)} disabled={busy}>
@@ -214,9 +205,48 @@
     font-size: 1rem;
     letter-spacing: 0.5px;
   }
-  .actions {
+  .meter {
     display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+  .meter .win {
+    display: flex;
+    align-items: baseline;
     gap: 0.4rem;
+  }
+  .meter .win span {
+    font-size: 0.6rem;
+    letter-spacing: 1px;
+  }
+  .meter .win strong {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--muted);
+    transition: color 0.2s ease;
+  }
+  .meter .win.has strong {
+    color: var(--good);
+  }
+  .bonus {
+    flex: 1;
+    text-align: center;
+    background: linear-gradient(180deg, #ffe39a, var(--gold));
+    color: #2a1f00;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 0.74rem;
+    letter-spacing: 0.5px;
+    border-radius: 8px;
+    padding: 0.35rem 0.6rem;
+    margin: 0 0.4rem;
+  }
+  .icon-btn.sm {
+    width: 32px;
+    height: 32px;
+    font-size: 0.95rem;
   }
 
   .stage {
@@ -224,7 +254,6 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     position: relative;
     margin: 0.5rem 0.6rem;
     padding: 0.7rem;
@@ -252,22 +281,6 @@
       0 0 0 2px color-mix(in srgb, var(--c) 45%, transparent),
       0 0 26px color-mix(in srgb, var(--c) 25%, transparent),
       var(--shadow-2);
-  }
-
-  .bonusband {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    background: linear-gradient(180deg, #ffe39a, var(--gold));
-    color: #2a1f00;
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 0.72rem;
-    letter-spacing: 0.5px;
-    border-radius: 10px;
-    padding: 0.45rem 0.8rem;
-    margin-bottom: 0.6rem;
-    box-shadow: 0 2px 12px rgba(232, 196, 104, 0.45);
   }
 
   .overlay {
@@ -320,34 +333,6 @@
     padding: 0.7rem 0.9rem calc(0.9rem + env(safe-area-inset-bottom));
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
   }
-  .hud {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.6rem;
-  }
-  .hud .spacer {
-    width: 38px;
-  }
-  .win {
-    display: flex;
-    align-items: baseline;
-    gap: 0.4rem;
-  }
-  .win span {
-    font-size: 0.6rem;
-    letter-spacing: 1px;
-  }
-  .win strong {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    color: var(--muted);
-    transition: color 0.2s ease;
-  }
-  .win.has strong {
-    color: var(--good);
-  }
-
   .controls {
     display: grid;
     grid-template-columns: 1fr 42%;

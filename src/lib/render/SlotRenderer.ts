@@ -30,7 +30,8 @@ export class SlotRenderer {
   private pool: TilePool | null = null;
 
   private tiles: (Tile | null)[][] = [];
-  private tile = 64;
+  private tileW = 64;
+  private tileH = 64;
   private gap = 7;
   private mounted = false;
   private destroyed = false;
@@ -68,11 +69,17 @@ export class SlotRenderer {
     // screen on tall phones instead of floating with dead space beneath it.
     const availW = Math.min(el.clientWidth || 360, 560);
     const availH = el.clientHeight || availW;
-    const tileByW = (availW - this.gap * (this.cols + 1)) / this.cols;
-    const tileByH = (availH - this.gap * (this.rows + 1)) / this.rows;
-    this.tile = Math.max(28, Math.floor(Math.min(tileByW, tileByH)));
-    this.w = this.cols * this.tile + this.gap * (this.cols + 1);
-    this.h = this.rows * this.tile + this.gap * (this.rows + 1);
+    let tileW = (availW - this.gap * (this.cols + 1)) / this.cols;
+    let tileH = (availH - this.gap * (this.rows + 1)) / this.rows;
+    // Allow cells to be up to 1.4:1 (tall) so wide/short grids fill the height
+    // instead of collapsing to a small centred square with big top/bottom voids.
+    const MAX_ASPECT = 1.5;
+    tileH = Math.min(tileH, tileW * MAX_ASPECT);
+    tileW = Math.min(tileW, tileH * MAX_ASPECT);
+    this.tileW = Math.max(24, Math.floor(tileW));
+    this.tileH = Math.max(24, Math.floor(tileH));
+    this.w = this.cols * this.tileW + this.gap * (this.cols + 1);
+    this.h = this.rows * this.tileH + this.gap * (this.rows + 1);
 
     const app = await getSharedApp();
     if (this.destroyed) return; // navigated away while initializing
@@ -83,17 +90,17 @@ export class SlotRenderer {
     app.stage.addChild(this.root);
     el.appendChild(app.canvas);
 
-    this.pool = new TilePool(this.gameId, this.tile);
+    this.pool = new TilePool(this.gameId, this.tileW, this.tileH);
     this.particles = new ParticleSystem(this.fxLayer);
     this.drawBackground();
     this.mounted = true;
   }
 
   private cellCenterX(col: number): number {
-    return this.gap + col * (this.tile + this.gap) + this.tile / 2;
+    return this.gap + col * (this.tileW + this.gap) + this.tileW / 2;
   }
   private cellCenterY(row: number): number {
-    return this.gap + row * (this.tile + this.gap) + this.tile / 2;
+    return this.gap + row * (this.tileH + this.gap) + this.tileH / 2;
   }
 
   /** Soft themed background: accent glow, frame, vignette, drifting motes. */
@@ -158,7 +165,7 @@ export class SlotRenderer {
         this.tiles[col][row] = t;
         if (drop) {
           const targetY = this.cellCenterY(row);
-          t.view.position.y = targetY - this.h - this.tile;
+          t.view.position.y = targetY - this.h - this.tileH;
           tweens.push(
             this.tweenP(t.view.position, {
               y: targetY,
@@ -229,7 +236,7 @@ export class SlotRenderer {
         this.boardLayer.addChild(t.view);
         t.view.position.set(
           this.cellCenterX(col),
-          this.cellCenterY(nr) - (newCount - nr) * (this.tile + this.gap) - this.tile
+          this.cellCenterY(nr) - (newCount - nr) * (this.tileH + this.gap) - this.tileH
         );
         nextCol[nr] = t;
       }
