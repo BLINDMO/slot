@@ -9,6 +9,7 @@
   import { SlotRenderer } from '$lib/render/SlotRenderer';
   import { playBook } from '$lib/render/player';
   import { sfx } from '$lib/audio';
+  import { gsap } from 'gsap';
 
   const gameId = page.params.gameId ?? '';
   const game = getGame(gameId);
@@ -21,6 +22,20 @@
 
   let busy = $state(false);
   let win = $state(0);
+  let displayWin = $state(0);
+  let winTween: gsap.core.Tween | null = null;
+
+  /** Roll the displayed win counter up to a new target for a satisfying count-up. */
+  function rollWinTo(target: number) {
+    winTween?.kill();
+    const proxy = { v: displayWin };
+    winTween = gsap.to(proxy, {
+      v: target,
+      duration: target > displayWin ? 0.5 : 0,
+      ease: 'power1.out',
+      onUpdate: () => (displayWin = proxy.v)
+    });
+  }
   let multiplier = $state(1);
   let fsRemaining = $state(0);
   let fsTotal = $state(0);
@@ -32,7 +47,7 @@
 
   onMount(async () => {
     if (!game || !game.meta.playable || !boardEl) return;
-    renderer = new SlotRenderer(gameId, game.layout.cols, game.layout.rows);
+    renderer = new SlotRenderer(gameId, game.layout.cols, game.layout.rows, game.meta.color);
     await renderer.mount(boardEl);
     await renderer.renderBoard(game.preview(rng), false);
   });
@@ -57,6 +72,7 @@
 
     busy = true;
     win = 0;
+    displayWin = 0;
     multiplier = 1;
     sfx.unlock();
     if ($settings.soundOn) sfx.spin();
@@ -66,7 +82,10 @@
     const book = game.spin(rng, { bonusBuy });
 
     await playBook(renderer!, book, $bet, {
-      onWin: (c) => (win = c),
+      onWin: (c) => {
+        win = c;
+        rollWinTo(c);
+      },
       onMultiplier: (m) => (multiplier = m),
       onFreeSpins: (rem, tot) => {
         fsRemaining = rem;
@@ -118,7 +137,7 @@
     {#if message}<div class="message">{message}</div>{/if}
     <div class="winrow">
       <span class="muted">WIN</span>
-      <strong class="tabular" class:big={win > 0}>{fmt(win)}</strong>
+      <strong class="tabular" class:big={win > 0}>{fmt(displayWin)}</strong>
     </div>
   </div>
 

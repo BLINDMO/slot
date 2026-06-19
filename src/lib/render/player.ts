@@ -48,8 +48,8 @@ export async function playBook(
       }
 
       case 'tumble':
-        await renderer.clearCells(ev.cleared);
-        await renderer.renderBoard(ev.board, true);
+        // Physical cascade: shatter cleared, slide survivors, drop new in.
+        await renderer.tumble(ev.cleared, ev.board);
         break;
 
       case 'globalMultiplier':
@@ -89,8 +89,10 @@ export async function playBook(
       case 'finalWin': {
         const credits = ev.totalWin * bet;
         cb.onWin(credits);
-        if (credits > 0) await renderer.winFlash(ev.totalWin >= 20);
-        if (ev.totalWin >= 20 && soundOn) sfx.bigWin();
+        const big = ev.totalWin >= 20;
+        // Intensity ramps with win size and saturates around a 100x win.
+        if (credits > 0) await renderer.celebrate(Math.min(ev.totalWin / 100, 1), big);
+        if (big && soundOn) sfx.bigWin();
         break;
       }
     }
