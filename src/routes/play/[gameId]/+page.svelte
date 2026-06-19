@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
+  import { base } from '$app/paths';
   import { getGame } from '$games/index';
   import { balance, bet, BET_STEPS, settings } from '$store/state';
   import { recordSpin } from '$store/db';
@@ -116,7 +117,7 @@
 </script>
 
 <header class="bar">
-  <button class="back btn" onclick={() => goto('/')} aria-label="Back to hub">‹</button>
+  <button class="back btn" onclick={() => goto(`${base}/`)} aria-label="Back to hub">‹</button>
   <div class="title">{game?.meta.title ?? 'Unknown game'}</div>
   <div class="bal tabular">{fmt($balance)}<span class="muted"> cr</span></div>
 </header>
@@ -124,7 +125,7 @@
 {#if !game || !game.meta.playable}
   <div class="empty">
     <p>{game ? `${game.meta.title} is coming soon.` : 'Game not found.'}</p>
-    <button class="btn" onclick={() => goto('/')}>Back to hub</button>
+    <button class="btn" onclick={() => goto(`${base}/`)}>Back to hub</button>
   </div>
 {:else}
   <div class="stage" style="--c:{game.meta.color}">

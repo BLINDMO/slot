@@ -2,6 +2,10 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 import { defineConfig } from 'vite';
 
+// Must match kit.paths.base in svelte.config.js so manifest URLs resolve under
+// the GitHub Pages project subpath (e.g. /slot).
+const base = process.env.BASE_PATH ?? '';
+
 export default defineConfig({
   plugins: [
     sveltekit(),
@@ -15,11 +19,13 @@ export default defineConfig({
         background_color: '#0b0e16',
         display: 'standalone',
         orientation: 'portrait',
+        scope: `${base}/`,
+        start_url: `${base}/`,
         icons: [
-          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: `${base}/icons/icon-192.png`, sizes: '192x192', type: 'image/png' },
+          { src: `${base}/icons/icon-512.png`, sizes: '512x512', type: 'image/png' },
           {
-            src: '/icons/icon-512-maskable.png',
+            src: `${base}/icons/icon-512-maskable.png`,
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'

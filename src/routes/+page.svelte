@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from '$app/paths';
   import { GAMES } from '$games/index';
   import { balance } from '$store/state';
   import InstallPrompt from '$lib/components/InstallPrompt.svelte';
@@ -11,7 +12,7 @@
     <h1>Slot Hub</h1>
     <p class="muted tagline">A personal arcade · virtual credits only</p>
   </div>
-  <a class="balance" href="/admin" title="Admin dashboard">
+  <a class="balance" href="{base}/admin" title="Admin dashboard">
     <span class="muted">CREDITS</span>
     <strong class="tabular">{fmt($balance)}</strong>
   </a>
@@ -22,7 +23,7 @@
 <div class="grid">
   {#each GAMES as g (g.meta.id)}
     {#if g.meta.playable}
-      <a class="tile" href="/play/{g.meta.id}" style="--c:{g.meta.color}">
+      <a class="tile" href="{base}/play/{g.meta.id}" style="--c:{g.meta.color}">
         <div class="art"><span>{g.meta.title}</span></div>
         <div class="info">
           <strong>{g.meta.title}</strong>

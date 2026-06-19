@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { base } from '$app/paths';
   import { GAMES, getGame } from '$games/index';
   import { settings } from '$store/state';
   import {
@@ -83,7 +84,7 @@
 </script>
 
 <header class="bar">
-  <button class="back btn" onclick={() => goto('/')} aria-label="Back">‹</button>
+  <button class="back btn" onclick={() => goto(`${base}/`)} aria-label="Back">‹</button>
   <div class="title">Admin · Game Performance</div>
 </header>
 
