@@ -1,0 +1,81 @@
+:root {
+  --bg: #0b0e16;
+  --bg-soft: #141925;
+  --panel: #1b2233;
+  --panel-2: #232c42;
+  --line: #2c3650;
+  --text: #e8ecf5;
+  --muted: #8b96b0;
+  --gold: #e8c468;
+  --good: #2fbf71;
+  --bad: #e6504f;
+  --accent: #1f9e89;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  /* Respect the iOS notch / home indicator in standalone mode. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.btn {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+  transition: filter 0.12s ease, transform 0.05s ease;
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: linear-gradient(180deg, var(--good), #1f9457);
+  border-color: #1f9457;
+  color: #04210f;
+}
+.btn-gold {
+  background: linear-gradient(180deg, var(--gold), #c79e3f);
+  border-color: #c79e3f;
+  color: #2a1f00;
+}
+
+.muted {
+  color: var(--muted);
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
