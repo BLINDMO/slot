@@ -82,7 +82,8 @@
     letter-spacing: 1px;
   }
   .balance strong {
-    font-size: 1.2rem;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
     color: var(--gold);
   }
   .grid {
@@ -114,11 +115,17 @@
     justify-content: center;
   }
   .art span {
+    font-family: var(--font-display);
     font-weight: 800;
-    font-size: 1rem;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
     text-align: center;
     padding: 0 0.5rem;
+  }
+  .info strong {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
   }
   .soon .art {
     filter: grayscale(0.7) brightness(0.7);

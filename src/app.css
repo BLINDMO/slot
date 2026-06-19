@@ -10,7 +10,16 @@
   --good: #2fbf71;
   --bad: #e6504f;
   --accent: #1f9e89;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Orbitron', system-ui, sans-serif;
+  --font-ui: 'Rubik', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-ui);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: 0.5px;
 }
 
 * {

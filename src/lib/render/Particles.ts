@@ -117,11 +117,17 @@ export class ParticleSystem {
     }
   }
 
-  destroy(): void {
+  /** Stop all particle tweens without destroying the layer (the renderer's root
+   *  teardown destroys the display objects). Prevents GSAP ticking dead graphics. */
+  killTweens(): void {
     for (const p of this.pool) {
       gsap.killTweensOf(p.g);
       gsap.killTweensOf(p.g.scale);
     }
+  }
+
+  destroy(): void {
+    this.killTweens();
     this.layer.destroy({ children: true });
     this.pool = [];
   }

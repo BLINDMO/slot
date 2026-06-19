@@ -183,8 +183,10 @@
   }
   .title {
     flex: 1;
+    font-family: var(--font-display);
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
+    letter-spacing: 0.5px;
   }
   .bal {
     color: var(--gold);
@@ -205,13 +207,16 @@
   }
   .bonusband {
     text-align: center;
-    background: var(--gold);
+    background: linear-gradient(180deg, #ffe39a, var(--gold));
     color: #2a1f00;
+    font-family: var(--font-display);
     font-weight: 800;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
     border-radius: 8px;
-    padding: 0.3rem;
+    padding: 0.4rem;
     margin-bottom: 0.6rem;
+    box-shadow: 0 2px 10px rgba(232, 196, 104, 0.4);
   }
   .message {
     position: absolute;
@@ -233,6 +238,7 @@
     margin-top: 0.6rem;
   }
   .winrow strong {
+    font-family: var(--font-display);
     font-size: 1.5rem;
   }
   .winrow strong.big {
@@ -264,8 +270,10 @@
     font-size: 1.2rem;
   }
   .spin {
-    font-size: 1.3rem;
-    letter-spacing: 1px;
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    letter-spacing: 1.5px;
+    box-shadow: 0 4px 16px rgba(47, 191, 113, 0.35);
   }
   .buy {
     text-align: center;
