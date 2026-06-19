@@ -2,8 +2,13 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
-  import { GAMES, getGame } from '$games/index';
+  import { GAMES } from '$games/index';
+  import { INSTANT_GAMES } from '$lib/instant/registry';
   import { settings } from '$store/state';
+
+  // Slots + instant games share the same telemetry; list both here.
+  const allMeta = [...GAMES.map((g) => g.meta), ...INSTANT_GAMES].filter((m) => m.playable);
+  const titleFor = (id: string) => allMeta.find((m) => m.id === id)?.title ?? id;
   import {
     loadAggregates,
     bucketLabels,
@@ -125,9 +130,9 @@
     <button class="chip" class:on={leaderboardFilter === 'all'} onclick={() => (leaderboardFilter = 'all')}
       >All</button
     >
-    {#each GAMES.filter((g) => g.meta.playable) as g}
-      <button class="chip" class:on={leaderboardFilter === g.meta.id} onclick={() => (leaderboardFilter = g.meta.id)}
-        >{g.meta.title}</button
+    {#each allMeta as m}
+      <button class="chip" class:on={leaderboardFilter === m.id} onclick={() => (leaderboardFilter = m.id)}
+        >{m.title}</button
       >
     {/each}
   </div>
@@ -138,7 +143,7 @@
       {#each leaderboard as w}
         <li>
           <span class="lb-mult">{w.multiplier.toFixed(1)}×</span>
-          <span class="lb-game">{getGame(w.gameId)?.meta.title ?? w.gameId}</span>
+          <span class="lb-game">{titleFor(w.gameId)}</span>
           <span class="lb-amt tabular">{fmt(w.amount)} cr</span>
         </li>
       {/each}
@@ -146,11 +151,11 @@
   {/if}
 
   <h3>Per-game performance</h3>
-  {#each GAMES.filter((g) => g.meta.playable) as g}
-    {@const ga = agg.perGame[g.meta.id]}
-    <div class="game" style="--c:{g.meta.color}">
+  {#each allMeta as m}
+    {@const ga = agg.perGame[m.id]}
+    <div class="game" style="--c:{m.color}">
       <div class="ghead">
-        <strong>{g.meta.title}</strong>
+        <strong>{m.title}</strong>
         <span class="muted small">{ga ? fmt(ga.spins) : 0} spins</span>
       </div>
       {#if !ga || ga.spins === 0}
@@ -161,12 +166,12 @@
         <div class="metrics">
           <div>
             <span class="muted small">Live RTP</span>
-            <div><strong>{pct(liveRtp)}</strong> <span class="muted small">/ {pct(g.meta.targetRtp)}</span></div>
+            <div><strong>{pct(liveRtp)}</strong> <span class="muted small">/ {pct(m.targetRtp)}</span></div>
           </div>
           <div>
             <span class="muted small">Hit freq</span>
             <div>
-              <strong>{pct(liveHit)}</strong> <span class="muted small">/ {pct(g.meta.targetHitFreq)}</span>
+              <strong>{pct(liveHit)}</strong> <span class="muted small">/ {pct(m.targetHitFreq)}</span>
             </div>
           </div>
           <div>

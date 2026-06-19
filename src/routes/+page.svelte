@@ -1,6 +1,7 @@
 <script lang="ts">
   import { base } from '$app/paths';
   import { GAMES } from '$games/index';
+  import { INSTANT_GAMES } from '$lib/instant/registry';
   import { balance } from '$store/state';
   import InstallPrompt from '$lib/components/InstallPrompt.svelte';
 
@@ -13,7 +14,9 @@
     highNoon: '🤠',
     forgeOfValhalla: '⚒️',
     luckySevens: '🍒',
-    novaDrift: '🚀'
+    novaDrift: '🚀',
+    plinko: '🔵',
+    keno: '🎯'
   };
 
   const featured = GAMES.find((g) => g.meta.playable) ?? GAMES[0];
@@ -84,6 +87,23 @@
         </div>
       </div>
     {/if}
+  {/each}
+</div>
+
+<h2 class="section">Instant Games <span class="edge">99% RTP</span></h2>
+<div class="grid">
+  {#each INSTANT_GAMES as g (g.id)}
+    <a class="tile instant" href="{base}/instant/{g.id}" style="--c:{g.color}">
+      <div class="art"><span class="deco">{DECO[g.id] ?? '🎲'}</span></div>
+      <div class="info">
+        <strong>{g.title}</strong>
+        <span class="muted small">{g.mechanic}</span>
+        <div class="tags">
+          <span class="tag gold">RTP 99%</span>
+          <span class="tag">{g.maxWin.toLocaleString()}×</span>
+        </div>
+      </div>
+    </a>
   {/each}
 </div>
 
@@ -201,6 +221,22 @@
     color: var(--muted);
     letter-spacing: 1px;
     text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .edge {
+    font-family: var(--font-ui);
+    font-size: 0.58rem;
+    letter-spacing: 0.5px;
+    color: var(--gold);
+    border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+    border-radius: 999px;
+    padding: 0.1rem 0.45rem;
+    text-transform: none;
+  }
+  .tile.instant .art {
+    background: radial-gradient(120% 120% at 30% 15%, color-mix(in srgb, var(--c) 70%, black 0%), #06080e 92%);
   }
   .grid {
     display: grid;

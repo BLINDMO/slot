@@ -78,6 +78,8 @@ export interface SpinOptions {
 /** Static descriptive metadata about a game, used by the hub and dashboard. */
 export interface GameMeta {
   id: string;
+  /** Slot games render the book-event board; instant games have bespoke UIs. */
+  category?: 'slot' | 'instant';
   title: string;
   theme: string;
   /** One-line description of the signature mechanic. */

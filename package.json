@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "sim": "tsx --tsconfig tsconfig.scripts.json scripts/simulate.ts",
+    "sim:instant": "tsx --tsconfig tsconfig.scripts.json scripts/instant.ts",
     "test": "tsx --tsconfig tsconfig.scripts.json scripts/test.ts"
   },
   "devDependencies": {
