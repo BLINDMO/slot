@@ -62,6 +62,7 @@ Current measured results (2M+ spins):
 | Game           | Target RTP | **Measured RTP** | Hit freq | Bonus freq | Volatility (sigma) |
 | -------------- | ---------- | ---------------- | -------- | ---------- | ------------------ |
 | Blackwater Bay | 96.5%      | **96.50%**       | 25.6%    | ~1 in 196  | 4.74 (High)        |
+| High Noon      | 96.4%      | **96.40%**       | 27.6%    | ~1 in 156  | ~19 (Very High)    |
 | Lucky Sevens   | 96.0%      | **95.95%**       | 47.0%    | n/a        | 2.19 (Medium)      |
 
 `npm run sim` exits non-zero if measured RTP drifts >1pp from target, so it can
@@ -73,7 +74,7 @@ gate CI.
 | --- | ----------------- | -------------------------------------------------- | ----------- |
 | 1   | Blackwater Bay    | Cluster pays + tumble + free-spin multiplier trail | Playable    |
 | 2   | Vaultbreakers     | Hold & Win money respins, 4-tier jackpot           | Roadmap     |
-| 3   | High Noon         | VS duel -> escalating sticky-wild free spins       | Roadmap     |
+| 3   | High Noon         | VS duel -> escalating sticky-wild free spins       | Playable    |
 | 4   | Forge of Valhalla | Megaways-style ways + multiplier upgrades          | Roadmap     |
 | 5   | Lucky Sevens      | 3x3 paylines + gamble wheel                         | Playable    |
 | 6   | Nova Drift        | Pick-and-click prize grid                          | Roadmap     |
@@ -90,6 +91,23 @@ that every resolved spin folds into (the detailed spin log is capped at 5,000
 records and rotated; aggregates survive rotation). Shows: live RTP vs target per
 game, biggest-wins leaderboard, hit frequency, win-size histogram, hold %, bonus
 natural-vs-buy rate, and per-symbol payout contribution.
+
+## Deployment (GitHub Pages)
+
+Published via the classic **"deploy from a branch"** method (no GitHub Actions
+required). The built SPA lives on the `gh-pages` branch and is served at
+`https://blindmo.github.io/slot/`.
+
+To re-publish after changes:
+
+```bash
+BASE_PATH=/slot npm run build
+cp build/index.html build/404.html        # SPA deep-link fallback
+# push build/ contents to the root of the gh-pages branch
+```
+
+One-time repo setting: **Settings → Pages → Source: Deploy from a branch →
+Branch `gh-pages` / `(root)`**.
 
 ## Dev
 
