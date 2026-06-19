@@ -184,13 +184,20 @@
     flex: 1;
     min-height: 0;
     position: relative;
-    padding: 0.6rem 0.8rem;
+    padding: 0.8rem 0.9rem;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.9rem;
   }
   .grid {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
-    gap: 0.4rem;
+    gap: 0.45rem;
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto;
   }
   .tile {
     aspect-ratio: 1;
@@ -234,7 +241,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 0.6rem 0.1rem 0.4rem;
+    margin: 0;
     font-size: 0.78rem;
   }
   .live {
