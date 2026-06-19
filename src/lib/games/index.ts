@@ -1,5 +1,6 @@
 import type { Game, GameMeta } from '$engine/types';
 import { blackwaterBay } from './blackwaterBay/game';
+import { highNoon } from './highNoon/game';
 import { luckySevens } from './luckySevens/game';
 
 /**
@@ -31,19 +32,6 @@ const vaultbreakers = comingSoon({
   maxWin: 10000,
   bonusBuyCost: 150,
   color: '#c0c4cc'
-});
-
-const highNoon = comingSoon({
-  id: 'highNoon',
-  title: 'High Noon',
-  theme: 'Wild west duel',
-  mechanic: 'VS duel feature awards an escalating-multiplier sticky wild in free spins',
-  volatility: 'High',
-  targetRtp: 0.964,
-  targetHitFreq: 0.28,
-  maxWin: 12500,
-  bonusBuyCost: 120,
-  color: '#b5651d'
 });
 
 const forgeOfValhalla = comingSoon({

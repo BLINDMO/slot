@@ -22,6 +22,17 @@ export const SKINS: Record<string, Skin> = {
     W: { color: 0x2fbf71, glyph: 'WILD', special: true },
     S: { color: 0xe8c468, glyph: 'BONUS', special: true }
   },
+  highNoon: {
+    L1: { color: 0x8a7355, glyph: '♠' },
+    L2: { color: 0x9b6b3f, glyph: '♥' },
+    L3: { color: 0x6d7a4f, glyph: '♦' },
+    L4: { color: 0x7a5b4f, glyph: '♣' },
+    H1: { color: 0xd9a441, glyph: '★', special: true },
+    H2: { color: 0xc25b4d, glyph: '🔫', special: true },
+    H3: { color: 0x4f6d7a, glyph: '🤠', special: true },
+    WILD: { color: 0x2fbf71, glyph: 'WILD', special: true },
+    VS: { color: 0xe6504f, glyph: 'VS', special: true }
+  },
   luckySevens: {
     CHERRY: { color: 0xe6504f, glyph: '🍒' },
     LEMON: { color: 0xe8c468, glyph: '🍋' },
