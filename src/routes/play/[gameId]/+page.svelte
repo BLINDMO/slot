@@ -13,7 +13,7 @@
   import { gsap } from 'gsap';
   import GameInfo from '$lib/components/GameInfo.svelte';
   import BetControl from '$lib/components/BetControl.svelte';
-  import BalanceChip from '$lib/components/BalanceChip.svelte';
+  import WalletCapsule from '$lib/components/WalletCapsule.svelte';
 
   const gameId = page.params.gameId ?? '';
   const game = getGame(gameId);
@@ -141,7 +141,7 @@
 <header class="topbar">
   <button class="icon-btn" onclick={() => goto(`${base}/`)} aria-label="Back to hub">‹</button>
   <div class="title">{game?.meta.title ?? 'Unknown game'}</div>
-  <BalanceChip />
+  <WalletCapsule compact />
 </header>
 
 {#if !game || !game.meta.playable}

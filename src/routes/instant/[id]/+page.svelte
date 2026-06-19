@@ -5,7 +5,7 @@
   import { getInstantMeta } from '$lib/instant/registry';
   import Plinko from '$lib/instant/Plinko.svelte';
   import Keno from '$lib/instant/Keno.svelte';
-  import BalanceChip from '$lib/components/BalanceChip.svelte';
+  import WalletCapsule from '$lib/components/WalletCapsule.svelte';
 
   const id = page.params.id ?? '';
   const meta = getInstantMeta(id);
@@ -14,7 +14,7 @@
 <header class="topbar">
   <button class="icon-btn" onclick={() => goto(`${base}/`)} aria-label="Back to hub">‹</button>
   <div class="title">{meta?.title ?? 'Unknown game'}</div>
-  <BalanceChip />
+  <WalletCapsule compact />
 </header>
 
 {#if !meta}
