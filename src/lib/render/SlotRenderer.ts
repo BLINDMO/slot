@@ -64,9 +64,14 @@ export class SlotRenderer {
   }
 
   async mount(el: HTMLElement): Promise<void> {
-    const width = Math.min(el.clientWidth || 360, 560);
-    this.tile = Math.floor((width - this.gap * (this.cols + 1)) / this.cols);
-    this.w = width;
+    // Size the board to fit BOTH the available width and height, so it fills the
+    // screen on tall phones instead of floating with dead space beneath it.
+    const availW = Math.min(el.clientWidth || 360, 560);
+    const availH = el.clientHeight || availW;
+    const tileByW = (availW - this.gap * (this.cols + 1)) / this.cols;
+    const tileByH = (availH - this.gap * (this.rows + 1)) / this.rows;
+    this.tile = Math.max(28, Math.floor(Math.min(tileByW, tileByH)));
+    this.w = this.cols * this.tile + this.gap * (this.cols + 1);
     this.h = this.rows * this.tile + this.gap * (this.rows + 1);
 
     const app = await getSharedApp();

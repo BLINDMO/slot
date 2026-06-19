@@ -5,39 +5,78 @@
   import InstallPrompt from '$lib/components/InstallPrompt.svelte';
 
   const fmt = (n: number) => Math.round(n).toLocaleString();
+
+  // Decorative emoji per game for the tile art (purely cosmetic).
+  const DECO: Record<string, string> = {
+    blackwaterBay: '🏴‍☠️',
+    vaultbreakers: '🏦',
+    highNoon: '🤠',
+    forgeOfValhalla: '⚒️',
+    luckySevens: '🍒',
+    novaDrift: '🚀'
+  };
+
+  const featured = GAMES.find((g) => g.meta.playable) ?? GAMES[0];
+  const rest = GAMES.filter((g) => g.meta.id !== featured.meta.id);
 </script>
 
-<header class="top">
-  <div>
-    <h1>Slot Hub</h1>
-    <p class="muted tagline">A personal arcade · virtual credits only</p>
+<header class="brand">
+  <div class="logo">
+    <span class="mark">🎰</span>
+    <div>
+      <h1>SLOT HUB</h1>
+      <p class="muted tagline">Personal arcade · virtual credits</p>
+    </div>
   </div>
-  <a class="balance" href="{base}/admin" title="Admin dashboard">
-    <span class="muted">CREDITS</span>
-    <strong class="tabular">{fmt($balance)}</strong>
-  </a>
+  <div class="brand-actions">
+    <div class="pill bal">
+      <span class="muted">CR</span>
+      <strong class="tabular">{fmt($balance)}</strong>
+    </div>
+    <a class="icon-btn" href="{base}/admin" aria-label="Admin dashboard">📊</a>
+  </div>
 </header>
 
 <InstallPrompt />
 
+<a class="hero" href="{base}/play/{featured.meta.id}" style="--c:{featured.meta.color}">
+  <div class="hero-art">
+    <span class="deco">{DECO[featured.meta.id] ?? '🎰'}</span>
+    <span class="badge">FEATURED</span>
+  </div>
+  <div class="hero-info">
+    <strong class="hero-title">{featured.meta.title}</strong>
+    <span class="muted small">{featured.meta.mechanic}</span>
+    <div class="tags">
+      <span class="tag">{featured.meta.volatility}</span>
+      <span class="tag">RTP {(featured.meta.targetRtp * 100).toFixed(1)}%</span>
+      <span class="tag gold">{featured.meta.maxWin.toLocaleString()}×</span>
+    </div>
+    <span class="play">PLAY ▸</span>
+  </div>
+</a>
+
+<h2 class="section">All Games</h2>
 <div class="grid">
-  {#each GAMES as g (g.meta.id)}
+  {#each rest as g (g.meta.id)}
     {#if g.meta.playable}
       <a class="tile" href="{base}/play/{g.meta.id}" style="--c:{g.meta.color}">
-        <div class="art"><span>{g.meta.title}</span></div>
+        <div class="art"><span class="deco">{DECO[g.meta.id] ?? '🎰'}</span></div>
         <div class="info">
           <strong>{g.meta.title}</strong>
           <span class="muted small">{g.meta.mechanic}</span>
           <div class="tags">
             <span class="tag">{g.meta.volatility}</span>
-            <span class="tag">RTP {(g.meta.targetRtp * 100).toFixed(1)}%</span>
-            <span class="tag">{g.meta.maxWin.toLocaleString()}x</span>
+            <span class="tag">{g.meta.maxWin.toLocaleString()}×</span>
           </div>
         </div>
       </a>
     {:else}
       <div class="tile soon" style="--c:{g.meta.color}">
-        <div class="art"><span>{g.meta.title}</span></div>
+        <div class="art">
+          <span class="deco">{DECO[g.meta.id] ?? '🎰'}</span>
+          <span class="lock">🔒</span>
+        </div>
         <div class="info">
           <strong>{g.meta.title}</strong>
           <span class="muted small">{g.meta.mechanic}</span>
@@ -53,52 +92,130 @@
 </footer>
 
 <style>
-  .top {
+  .brand {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    padding: 1.2rem 1rem 0.6rem;
+    align-items: center;
+    padding: 1.1rem 1rem 0.7rem;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .mark {
+    font-size: 1.8rem;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
   }
   h1 {
     margin: 0;
-    font-size: 1.6rem;
-    letter-spacing: 0.5px;
-  }
-  .tagline {
-    margin: 0.2rem 0 0;
-    font-size: 0.8rem;
-  }
-  .balance {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 0.5rem 0.8rem;
-  }
-  .balance span {
-    font-size: 0.62rem;
+    font-size: 1.35rem;
     letter-spacing: 1px;
   }
-  .balance strong {
+  .tagline {
+    margin: 0.1rem 0 0;
+    font-size: 0.72rem;
+  }
+  .brand-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .bal span {
+    font-size: 0.62rem;
+    letter-spacing: 0.5px;
+  }
+  .bal strong {
     font-family: var(--font-display);
-    font-size: 1.15rem;
     color: var(--gold);
+    font-size: 1rem;
+  }
+
+  /* Featured hero */
+  .hero {
+    display: block;
+    margin: 0.3rem 1rem 0;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-2);
+    transition: transform 0.08s ease, border-color 0.15s ease;
+  }
+  .hero:active {
+    transform: scale(0.99);
+  }
+  .hero-art {
+    position: relative;
+    height: 130px;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(120% 120% at 30% 10%, color-mix(in srgb, var(--c) 90%, white 6%), #0b0e16 92%);
+  }
+  .hero-art .deco {
+    font-size: 3.6rem;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.55));
+  }
+  .badge {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    font-family: var(--font-display);
+    font-size: 0.58rem;
+    letter-spacing: 1px;
+  }
+  .hero-info {
+    background: var(--panel-grad);
+    padding: 0.8rem 0.9rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    position: relative;
+  }
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+  }
+  .play {
+    position: absolute;
+    right: 0.9rem;
+    bottom: 0.9rem;
+    background: linear-gradient(180deg, #44e08a, #1f9457);
+    color: #04210f;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    box-shadow: 0 4px 14px rgba(47, 191, 113, 0.4);
+  }
+
+  .section {
+    margin: 1.3rem 1rem 0.6rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
   }
   .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.8rem;
-    padding: 0.6rem 1rem 1rem;
+    padding: 0 1rem;
   }
   .tile {
-    background: var(--panel);
+    background: var(--panel-grad);
     border: 1px solid var(--line);
-    border-radius: 16px;
+    border-radius: var(--radius);
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    box-shadow: var(--shadow-1);
     transition: transform 0.06s ease, border-color 0.15s ease;
   }
   .tile:active {
@@ -108,27 +225,24 @@
     border-color: var(--c);
   }
   .art {
-    height: 96px;
-    background: radial-gradient(120% 120% at 30% 20%, color-mix(in srgb, var(--c) 85%, white 0%), #0b0e16 90%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative;
+    height: 84px;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(120% 120% at 30% 15%, color-mix(in srgb, var(--c) 82%, white 0%), #0b0e16 92%);
   }
-  .art span {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 0.95rem;
-    letter-spacing: 0.5px;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-    text-align: center;
-    padding: 0 0.5rem;
-  }
-  .info strong {
-    font-family: var(--font-display);
-    font-size: 0.9rem;
+  .art .deco {
+    font-size: 2.4rem;
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
   }
   .soon .art {
-    filter: grayscale(0.7) brightness(0.7);
+    filter: grayscale(0.75) brightness(0.65);
+  }
+  .lock {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.5rem;
+    font-size: 0.9rem;
   }
   .info {
     padding: 0.6rem 0.7rem 0.8rem;
@@ -136,30 +250,39 @@
     flex-direction: column;
     gap: 0.3rem;
   }
+  .info strong {
+    font-family: var(--font-display);
+    font-size: 0.88rem;
+  }
   .small {
-    font-size: 0.72rem;
-    line-height: 1.25;
+    font-size: 0.7rem;
+    line-height: 1.3;
   }
   .tags {
     display: flex;
     flex-wrap: wrap;
     gap: 0.3rem;
-    margin-top: 0.2rem;
+    margin-top: 0.15rem;
   }
   .tag {
-    font-size: 0.62rem;
-    background: var(--panel-2);
+    font-size: 0.6rem;
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--line);
     border-radius: 6px;
     padding: 0.15rem 0.4rem;
     color: var(--muted);
+  }
+  .tag.gold {
+    color: var(--gold);
+    border-color: color-mix(in srgb, var(--gold) 40%, transparent);
   }
   .soon-tag {
     color: var(--gold);
   }
   .foot {
     text-align: center;
-    padding: 0.5rem 1rem 2rem;
+    padding: 1.2rem 1rem 2rem;
     line-height: 1.5;
+    font-size: 0.68rem;
   }
 </style>

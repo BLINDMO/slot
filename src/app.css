@@ -1,18 +1,35 @@
 :root {
-  --bg: #0b0e16;
-  --bg-soft: #141925;
-  --panel: #1b2233;
-  --panel-2: #232c42;
-  --line: #2c3650;
-  --text: #e8ecf5;
-  --muted: #8b96b0;
-  --gold: #e8c468;
-  --good: #2fbf71;
+  /* Surfaces */
+  --bg: #080a12;
+  --bg-2: #0c0f1a;
+  --panel: #161b29;
+  --panel-2: #1f2738;
+  --panel-grad: linear-gradient(180deg, #1d2436, #141a27);
+  --line: #2a3346;
+  --line-soft: #222a3a;
+
+  /* Text */
+  --text: #eef1f8;
+  --muted: #8a94ac;
+
+  /* Accents */
+  --gold: #f2cd6a;
+  --gold-2: #c79e3f;
+  --good: #33c977;
   --bad: #e6504f;
   --accent: #1f9e89;
+
+  /* Shape & elevation */
+  --radius-sm: 10px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --shadow-1: 0 2px 10px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 12px 34px rgba(0, 0, 0, 0.5);
+
   --font-display: 'Orbitron', system-ui, sans-serif;
   --font-ui: 'Rubik', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-family: var(--font-ui);
+  color-scheme: dark;
 }
 
 h1,
@@ -31,13 +48,17 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg);
   color: var(--text);
   min-height: 100%;
   overscroll-behavior: none;
 }
 
 body {
+  background:
+    radial-gradient(120% 80% at 50% -10%, #16203a 0%, rgba(8, 10, 18, 0) 55%),
+    radial-gradient(90% 60% at 100% 100%, #1a1430 0%, rgba(8, 10, 18, 0) 60%),
+    var(--bg);
+  background-attachment: fixed;
   /* Respect the iOS notch / home indicator in standalone mode. */
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
     env(safe-area-inset-left);
@@ -56,35 +77,132 @@ a {
   text-decoration: none;
 }
 
+/* ---- Buttons ---------------------------------------------------------- */
 .btn {
   background: var(--panel-2);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius);
   padding: 0.7rem 1rem;
   font-weight: 600;
-  transition: filter 0.12s ease, transform 0.05s ease;
+  color: var(--text);
+  transition: filter 0.12s ease, transform 0.06s ease, box-shadow 0.15s ease;
+}
+.btn:hover {
+  filter: brightness(1.08);
 }
 .btn:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
 .btn:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
+  filter: none;
 }
 .btn-primary {
-  background: linear-gradient(180deg, var(--good), #1f9457);
+  background: linear-gradient(180deg, #44e08a, #1f9457);
   border-color: #1f9457;
   color: #04210f;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 .btn-gold {
-  background: linear-gradient(180deg, var(--gold), #c79e3f);
-  border-color: #c79e3f;
+  background: linear-gradient(180deg, #ffe39a, var(--gold-2));
+  border-color: var(--gold-2);
   color: #2a1f00;
 }
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--line-soft);
+}
 
+/* Circular icon button */
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  font-size: 1.1rem;
+  transition: filter 0.12s ease, transform 0.06s ease;
+}
+.icon-btn:hover {
+  filter: brightness(1.15);
+}
+.icon-btn:active {
+  transform: scale(0.92);
+}
+
+/* Pill (balance, tags) */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+}
+
+/* Card surface */
+.surface {
+  background: var(--panel-grad);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+}
+
+/* ---- Modal ------------------------------------------------------------ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 6, 12, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  animation: fade 0.2s ease;
+}
+.modal {
+  width: 100%;
+  max-width: 640px;
+  max-height: 84vh;
+  overflow-y: auto;
+  background: var(--panel-grad);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-2);
+  padding: 1.1rem 1.1rem calc(1.4rem + env(safe-area-inset-bottom));
+  animation: slideup 0.26s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes slideup {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+
+/* ---- Utilities -------------------------------------------------------- */
 .muted {
   color: var(--muted);
 }
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+.display {
+  font-family: var(--font-display);
+}
+
+/* Hide scrollbars but keep scrolling */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }

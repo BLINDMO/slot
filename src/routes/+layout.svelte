@@ -18,6 +18,8 @@
   main {
     max-width: 640px;
     margin: 0 auto;
-    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
   }
 </style>
