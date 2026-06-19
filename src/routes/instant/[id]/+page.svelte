@@ -2,22 +2,19 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
-  import { balance } from '$store/state';
   import { getInstantMeta } from '$lib/instant/registry';
   import Plinko from '$lib/instant/Plinko.svelte';
   import Keno from '$lib/instant/Keno.svelte';
+  import BalanceChip from '$lib/components/BalanceChip.svelte';
 
   const id = page.params.id ?? '';
   const meta = getInstantMeta(id);
-  const fmt = (n: number) => Math.round(n).toLocaleString();
 </script>
 
 <header class="topbar">
   <button class="icon-btn" onclick={() => goto(`${base}/`)} aria-label="Back to hub">‹</button>
   <div class="title">{meta?.title ?? 'Unknown game'}</div>
-  <div class="pill bal">
-    <span class="muted">CR</span><strong class="tabular">{fmt($balance)}</strong>
-  </div>
+  <BalanceChip />
 </header>
 
 {#if !meta}
@@ -45,14 +42,6 @@
     font-weight: 700;
     font-size: 1rem;
     letter-spacing: 0.5px;
-  }
-  .bal span {
-    font-size: 0.62rem;
-  }
-  .bal strong {
-    font-family: var(--font-display);
-    color: var(--gold);
-    font-size: 1rem;
   }
   .empty {
     flex: 1;

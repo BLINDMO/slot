@@ -4,7 +4,7 @@
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
   import { getGame } from '$games/index';
-  import { balance, bet, BET_STEPS, settings } from '$store/state';
+  import { balance, bet, settings } from '$store/state';
   import { recordSpin } from '$store/db';
   import { mulberry32, randomSeed } from '$engine/rng';
   import { SlotRenderer } from '$lib/render/SlotRenderer';
@@ -12,6 +12,8 @@
   import { sfx } from '$lib/audio';
   import { gsap } from 'gsap';
   import GameInfo from '$lib/components/GameInfo.svelte';
+  import BetControl from '$lib/components/BetControl.svelte';
+  import BalanceChip from '$lib/components/BalanceChip.svelte';
 
   const gameId = page.params.gameId ?? '';
   const game = getGame(gameId);
@@ -64,13 +66,6 @@
   });
 
   onDestroy(() => renderer?.destroy());
-
-  function changeBet(dir: number) {
-    if (busy) return;
-    const i = BET_STEPS.indexOf($bet);
-    const next = BET_STEPS[Math.max(0, Math.min(BET_STEPS.length - 1, i + dir))];
-    bet.set(next);
-  }
 
   function toggleSound() {
     settings.update((s) => ({ ...s, soundOn: !s.soundOn }));
@@ -148,11 +143,9 @@
   <div class="title">{game?.meta.title ?? 'Unknown game'}</div>
   <div class="actions">
     {#if game?.meta.playable}
-      <button class="icon-btn" onclick={toggleSound} aria-label="Toggle sound">
-        {$settings.soundOn ? '🔊' : '🔇'}
-      </button>
       <button class="icon-btn" onclick={() => (showInfo = true)} aria-label="Game info">ⓘ</button>
     {/if}
+    <BalanceChip />
   </div>
 </header>
 
@@ -178,42 +171,29 @@
   </section>
 
   <section class="panel">
-    <div class="readout">
-      <div class="ro">
-        <span class="muted">BALANCE</span><strong class="tabular">{fmt($balance)}</strong>
-      </div>
-      <div class="ro center">
+    <div class="hud">
+      <button class="icon-btn" onclick={toggleSound} aria-label="Toggle sound">
+        {$settings.soundOn ? '🔊' : '🔇'}
+      </button>
+      <div class="win" class:has={win > 0}>
         <span class="muted">WIN</span>
-        <strong class="tabular win" class:has={win > 0}>{fmt(displayWin)}</strong>
+        <strong class="tabular">{fmt(displayWin)}</strong>
       </div>
-      <div class="ro right">
-        <span class="muted">BET</span><strong class="tabular">{$bet}</strong>
-      </div>
+      <div class="spacer"></div>
     </div>
 
     <div class="controls">
-      <div class="stepper">
-        <button class="icon-btn" onclick={() => changeBet(-1)} disabled={busy || $bet === BET_STEPS[0]}
-          >−</button
-        >
-        <button
-          class="icon-btn"
-          onclick={() => changeBet(1)}
-          disabled={busy || $bet === BET_STEPS[BET_STEPS.length - 1]}>+</button
-        >
-      </div>
-
+      <BetControl disabled={busy} />
       <button class="btn btn-primary spin" onclick={() => spin(false)} disabled={busy}>
         {busy ? '···' : 'SPIN'}
       </button>
-
-      {#if game.meta.bonusBuyCost}
-        <button class="btn btn-gold buy" onclick={() => spin(true)} disabled={busy}>
-          <span>BUY BONUS</span>
-          <span class="buycost tabular">{fmt(buyCost)}</span>
-        </button>
-      {/if}
     </div>
+
+    {#if game.meta.bonusBuyCost}
+      <button class="btn btn-gold buy" onclick={() => spin(true)} disabled={busy}>
+        Buy Bonus <span class="tabular">· {fmt(buyCost)}</span>
+      </button>
+    {/if}
   </section>
 {/if}
 
@@ -339,76 +319,52 @@
     padding: 0.7rem 0.9rem calc(0.9rem + env(safe-area-inset-bottom));
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
   }
-  .readout {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    margin-bottom: 0.7rem;
-  }
-  .ro {
+  .hud {
     display: flex;
-    flex-direction: column;
-  }
-  .ro.center {
     align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
   }
-  .ro.right {
-    align-items: flex-end;
+  .hud .spacer {
+    width: 38px;
   }
-  .ro span {
-    font-size: 0.58rem;
+  .win {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+  .win span {
+    font-size: 0.6rem;
     letter-spacing: 1px;
   }
-  .ro strong {
-    font-size: 1.05rem;
-  }
-  .ro.center .win {
+  .win strong {
     font-family: var(--font-display);
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     color: var(--muted);
     transition: color 0.2s ease;
   }
-  .ro.center .win.has {
+  .win.has strong {
     color: var(--good);
   }
 
   .controls {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 1fr 42%;
     gap: 0.6rem;
-    align-items: stretch;
-  }
-  .stepper {
-    display: flex;
-    gap: 0.35rem;
-    align-items: center;
-  }
-  .stepper .icon-btn {
-    width: 44px;
-    height: 44px;
-    font-size: 1.3rem;
+    align-items: end;
   }
   .spin {
+    height: 100%;
+    min-height: 52px;
     font-family: var(--font-display);
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     letter-spacing: 2px;
-    border-radius: var(--radius-lg);
-    box-shadow: 0 4px 18px rgba(47, 191, 113, 0.4);
   }
   .buy {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    line-height: 1.1;
-    font-family: var(--font-display);
-    font-size: 0.66rem;
-    letter-spacing: 0.5px;
-    border-radius: var(--radius-lg);
-    padding: 0.4rem 0.7rem;
-  }
-  .buycost {
-    font-size: 0.8rem;
+    width: 100%;
+    margin-top: 0.6rem;
+    font-weight: 600;
+    font-size: 0.9rem;
   }
   .empty {
     flex: 1;

@@ -1,30 +1,30 @@
 :root {
-  /* Surfaces */
-  --bg: #080a12;
-  --bg-2: #0c0f1a;
-  --panel: #161b29;
-  --panel-2: #1f2738;
-  --panel-grad: linear-gradient(180deg, #1d2436, #141a27);
-  --line: #2a3346;
-  --line-soft: #222a3a;
+  /* Stake-inspired: desaturated navy surfaces, one restrained action colour. */
+  --bg: #0e1820;
+  --bg-2: #0b161e;
+  --input: #0f212e;
+  --panel: #16252f;
+  --panel-2: #1c2f3b;
+  --panel-grad: linear-gradient(180deg, #1b2c37, #15232d);
+  --line: #2a3f4d;
+  --line-soft: #213340;
 
-  /* Text */
-  --text: #eef1f8;
-  --muted: #8a94ac;
+  --text: #ffffff;
+  --muted: #93a4b3;
 
-  /* Accents */
-  --gold: #f2cd6a;
-  --gold-2: #c79e3f;
-  --good: #33c977;
-  --bad: #e6504f;
+  /* Action colours — used sparingly, like a real sportsbook/casino UI. */
+  --primary: #1fd35b;
+  --primary-700: #16b84c;
+  --gold: #e9c46a;
+  --good: #1fd35b;
+  --bad: #ff6b6b;
   --accent: #1f9e89;
 
-  /* Shape & elevation */
-  --radius-sm: 10px;
-  --radius: 14px;
-  --radius-lg: 20px;
-  --shadow-1: 0 2px 10px rgba(0, 0, 0, 0.35);
-  --shadow-2: 0 12px 34px rgba(0, 0, 0, 0.5);
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow-1: 0 2px 10px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 14px 40px rgba(0, 0, 0, 0.55);
 
   --font-display: 'Orbitron', system-ui, sans-serif;
   --font-ui: 'Rubik', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -36,7 +36,7 @@ h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
 }
 
 * {
@@ -55,11 +55,9 @@ body {
 
 body {
   background:
-    radial-gradient(120% 80% at 50% -10%, #16203a 0%, rgba(8, 10, 18, 0) 55%),
-    radial-gradient(90% 60% at 100% 100%, #1a1430 0%, rgba(8, 10, 18, 0) 60%),
+    radial-gradient(140% 55% at 50% -10%, #182a33 0%, rgba(0, 0, 0, 0) 60%),
     var(--bg);
   background-attachment: fixed;
-  /* Respect the iOS notch / home indicator in standalone mode. */
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
     env(safe-area-inset-left);
 }
@@ -77,7 +75,7 @@ a {
   text-decoration: none;
 }
 
-/* ---- Buttons ---------------------------------------------------------- */
+/* ---- Buttons (flat, modern) ------------------------------------------ */
 .btn {
   background: var(--panel-2);
   border: 1px solid var(--line);
@@ -85,13 +83,13 @@ a {
   padding: 0.7rem 1rem;
   font-weight: 600;
   color: var(--text);
-  transition: filter 0.12s ease, transform 0.06s ease, box-shadow 0.15s ease;
+  transition: filter 0.12s ease, transform 0.05s ease, background 0.15s ease;
 }
 .btn:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.1);
 }
 .btn:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
 }
 .btn:disabled {
   opacity: 0.4;
@@ -99,41 +97,44 @@ a {
   filter: none;
 }
 .btn-primary {
-  background: linear-gradient(180deg, #44e08a, #1f9457);
-  border-color: #1f9457;
-  color: #04210f;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #042b12;
+}
+.btn-primary:hover {
+  background: var(--primary-700);
 }
 .btn-gold {
-  background: linear-gradient(180deg, #ffe39a, var(--gold-2));
-  border-color: var(--gold-2);
-  color: #2a1f00;
-}
-.btn-ghost {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: var(--line-soft);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  color: var(--gold);
 }
 
 /* Circular icon button */
 .icon-btn {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  background: var(--panel-2);
   border: 1px solid var(--line);
-  font-size: 1.1rem;
-  transition: filter 0.12s ease, transform 0.06s ease;
+  font-size: 1.05rem;
+  color: var(--muted);
+  transition: filter 0.12s ease, transform 0.05s ease, color 0.12s ease;
 }
 .icon-btn:hover {
   filter: brightness(1.15);
+  color: var(--text);
 }
 .icon-btn:active {
-  transform: scale(0.92);
+  transform: scale(0.93);
+}
+.icon-btn:disabled {
+  opacity: 0.4;
 }
 
-/* Pill (balance, tags) */
+/* Pill (tags) */
 .pill {
   display: inline-flex;
   align-items: center;
@@ -144,7 +145,6 @@ a {
   padding: 0.35rem 0.7rem;
 }
 
-/* Card surface */
 .surface {
   background: var(--panel-grad);
   border: 1px solid var(--line);
@@ -152,11 +152,48 @@ a {
   box-shadow: var(--shadow-1);
 }
 
+/* ---- Inputs / segmented controls ------------------------------------- */
+.input {
+  background: var(--input);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 0.55rem 0.7rem;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.segment {
+  display: flex;
+  background: var(--input);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  gap: 3px;
+}
+.segment button {
+  flex: 1;
+  text-transform: capitalize;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  color: var(--muted);
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.segment button.on {
+  background: var(--panel-2);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
 /* ---- Modal ------------------------------------------------------------ */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(4, 6, 12, 0.72);
+  background: rgba(4, 8, 12, 0.72);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   display: flex;
@@ -177,7 +214,6 @@ a {
   padding: 1.1rem 1.1rem calc(1.4rem + env(safe-area-inset-bottom));
   animation: slideup 0.26s cubic-bezier(0.2, 0.9, 0.2, 1);
 }
-
 @keyframes fade {
   from {
     opacity: 0;
@@ -197,11 +233,6 @@ a {
 .tabular {
   font-variant-numeric: tabular-nums;
 }
-.display {
-  font-family: var(--font-display);
-}
-
-/* Hide scrollbars but keep scrolling */
 ::-webkit-scrollbar {
   width: 0;
   height: 0;

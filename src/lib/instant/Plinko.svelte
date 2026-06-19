@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { gsap } from 'gsap';
-  import { balance, bet, BET_STEPS } from '$store/state';
+  import { balance, bet } from '$store/state';
   import { recordSpin } from '$store/db';
+  import BetControl from '$lib/components/BetControl.svelte';
   import { mulberry32, randomSeed } from '$engine/rng';
   import {
     MIN_ROWS,
@@ -194,18 +195,6 @@
     });
   }
 
-  function changeBet(dir: number) {
-    const i = BET_STEPS.indexOf($bet);
-    bet.set(BET_STEPS[Math.max(0, Math.min(BET_STEPS.length - 1, i + dir))]);
-  }
-  function scaleBet(f: number) {
-    const target = $bet * f;
-    let best = BET_STEPS[0];
-    for (const s of BET_STEPS) if (s <= target) best = s;
-    if (f > 1) for (const s of BET_STEPS) if (s >= target) { best = s; break; }
-    bet.set(best);
-  }
-
   onMount(() => {
     resize();
     window.addEventListener('resize', resize);
@@ -232,32 +221,26 @@
 
 <section class="panel">
   <div class="rowctrl">
-    <div class="seg risk">
-      {#each RISKS as r}
-        <button class:on={risk === r} onclick={() => (risk = r)}>{r}</button>
-      {/each}
+    <div class="field-col">
+      <span class="lbl">Risk</span>
+      <div class="segment">
+        {#each RISKS as r}
+          <button class:on={risk === r} onclick={() => (risk = r)}>{r}</button>
+        {/each}
+      </div>
     </div>
-    <div class="rows">
-      <span class="muted">ROWS</span>
-      <button class="icon-btn" onclick={() => (rows = Math.max(MIN_ROWS, rows - 1))}>−</button>
-      <strong class="tabular">{rows}</strong>
-      <button class="icon-btn" onclick={() => (rows = Math.min(MAX_ROWS, rows + 1))}>+</button>
+    <div class="field-col rows">
+      <span class="lbl">Rows</span>
+      <div class="rowstep">
+        <button class="icon-btn" onclick={() => (rows = Math.max(MIN_ROWS, rows - 1))}>−</button>
+        <strong class="tabular">{rows}</strong>
+        <button class="icon-btn" onclick={() => (rows = Math.min(MAX_ROWS, rows + 1))}>+</button>
+      </div>
     </div>
   </div>
 
   <div class="controls">
-    <div class="betbox">
-      <span class="muted">BET</span>
-      <div class="betrow">
-        <button class="icon-btn sm" onclick={() => changeBet(-1)}>−</button>
-        <strong class="tabular">{$bet}</strong>
-        <button class="icon-btn sm" onclick={() => changeBet(1)}>+</button>
-      </div>
-      <div class="quick">
-        <button onclick={() => scaleBet(0.5)}>½</button>
-        <button onclick={() => scaleBet(2)}>2×</button>
-      </div>
-    </div>
+    <BetControl />
     <button class="btn btn-primary drop" onclick={drop}>DROP</button>
   </div>
 </section>
@@ -324,96 +307,52 @@
     padding: 0.7rem 0.9rem calc(0.9rem + env(safe-area-inset-bottom));
   }
   .rowctrl {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: grid;
+    grid-template-columns: 1fr auto;
     gap: 0.6rem;
+    align-items: end;
     margin-bottom: 0.7rem;
   }
-  .seg {
+  .field-col {
     display: flex;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 2px;
+    flex-direction: column;
+    gap: 0.3rem;
   }
-  .seg button {
-    text-transform: capitalize;
-    font-size: 0.78rem;
-    font-weight: 600;
-    padding: 0.35rem 0.8rem;
-    border-radius: 999px;
+  .lbl {
+    font-size: 0.66rem;
+    letter-spacing: 0.4px;
     color: var(--muted);
   }
-  .seg button.on {
-    background: linear-gradient(180deg, #2bd4da, #138e93);
-    color: #04210f;
-  }
-  .rows {
+  .rowstep {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.35rem;
+    background: var(--input);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 0.2rem 0.3rem;
   }
-  .rows span {
-    font-size: 0.6rem;
-    letter-spacing: 1px;
+  .rowstep .icon-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 1.05rem;
+    border-radius: 6px;
   }
-  .rows .icon-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 1.1rem;
+  .rowstep strong {
+    min-width: 26px;
+    text-align: center;
+    font-size: 1.05rem;
   }
   .controls {
     display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.7rem;
-    align-items: stretch;
-  }
-  .betbox {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 0.4rem 0.6rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.2rem;
-  }
-  .betbox > span {
-    font-size: 0.55rem;
-    letter-spacing: 1px;
-  }
-  .betrow {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-  .betrow strong {
-    font-size: 1.1rem;
-    min-width: 34px;
-    text-align: center;
-  }
-  .icon-btn.sm {
-    width: 30px;
-    height: 30px;
-    font-size: 1rem;
-  }
-  .quick {
-    display: flex;
-    gap: 0.3rem;
-  }
-  .quick button {
-    font-size: 0.66rem;
-    color: var(--muted);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    padding: 0.1rem 0.4rem;
+    grid-template-columns: 1fr 42%;
+    gap: 0.6rem;
+    align-items: end;
   }
   .drop {
+    min-height: 52px;
     font-family: var(--font-display);
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     letter-spacing: 2px;
-    border-radius: var(--radius-lg);
-    box-shadow: 0 4px 18px rgba(47, 191, 113, 0.4);
   }
 </style>

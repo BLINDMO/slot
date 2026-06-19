@@ -2,10 +2,8 @@
   import { base } from '$app/paths';
   import { GAMES } from '$games/index';
   import { INSTANT_GAMES } from '$lib/instant/registry';
-  import { balance } from '$store/state';
   import InstallPrompt from '$lib/components/InstallPrompt.svelte';
-
-  const fmt = (n: number) => Math.round(n).toLocaleString();
+  import BalanceChip from '$lib/components/BalanceChip.svelte';
 
   // Decorative emoji per game for the tile art (purely cosmetic).
   const DECO: Record<string, string> = {
@@ -32,10 +30,7 @@
     </div>
   </div>
   <div class="brand-actions">
-    <div class="pill bal">
-      <span class="muted">CR</span>
-      <strong class="tabular">{fmt($balance)}</strong>
-    </div>
+    <BalanceChip />
     <a class="icon-btn" href="{base}/admin" aria-label="Admin dashboard">📊</a>
   </div>
 </header>
@@ -141,15 +136,6 @@
     align-items: center;
     gap: 0.5rem;
   }
-  .bal span {
-    font-size: 0.62rem;
-    letter-spacing: 0.5px;
-  }
-  .bal strong {
-    font-family: var(--font-display);
-    color: var(--gold);
-    font-size: 1rem;
-  }
 
   /* Featured hero */
   .hero {
@@ -204,15 +190,14 @@
     position: absolute;
     right: 0.9rem;
     bottom: 0.9rem;
-    background: linear-gradient(180deg, #44e08a, #1f9457);
-    color: #04210f;
+    background: var(--primary);
+    color: #042b12;
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 0.8rem;
     letter-spacing: 1px;
-    padding: 0.5rem 0.9rem;
-    border-radius: 999px;
-    box-shadow: 0 4px 14px rgba(47, 191, 113, 0.4);
+    padding: 0.5rem 0.95rem;
+    border-radius: 10px;
   }
 
   .section {
