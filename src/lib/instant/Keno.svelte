@@ -174,20 +174,20 @@
     flex: 1;
     min-height: 0;
     position: relative;
-    padding: 0.8rem 0.9rem;
+    padding: 1rem 0.9rem;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 0.9rem;
+    gap: 1rem;
+    /* Atmospheric backdrop so the board never floats on dead black. */
+    background: radial-gradient(120% 55% at 50% 12%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%);
   }
   .grid {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
-    gap: 0.45rem;
+    gap: 0.5rem;
     width: 100%;
-    max-width: 380px;
-    margin: 0 auto;
   }
   .tile {
     aspect-ratio: 1;
@@ -196,7 +196,7 @@
     border: 1px solid var(--line);
     color: var(--text);
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 1.05rem;
     transition: transform 0.06s ease, box-shadow 0.15s ease, background 0.15s ease;
   }
   .tile:active {

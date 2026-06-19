@@ -63,7 +63,8 @@
   function resize() {
     if (!wrap || !canvas) return;
     W = Math.min(wrap.clientWidth, 520);
-    H = Math.max(320, Math.min(wrap.clientHeight, W * 1.1));
+    // Fill the available height so there's no dead gap above/below the board.
+    H = Math.max(340, Math.min(wrap.clientHeight, W * 1.7));
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = W * dpr;
     canvas.height = H * dpr;

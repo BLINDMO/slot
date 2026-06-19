@@ -163,9 +163,7 @@
         <span>×{multiplier}</span>
       </div>
     {/if}
-    <div class="reelframe" style="--c:{game.meta.color}">
-      <div class="board" bind:this={boardEl}></div>
-    </div>
+    <div class="board" bind:this={boardEl} style="--c:{game.meta.color}"></div>
     {#if message}<div class="overlay message">{message}</div>{/if}
     {#if banner}<div class="overlay banner {banner.cls}">{banner.label}</div>{/if}
   </section>
@@ -226,24 +224,18 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     position: relative;
-    padding: 0 0.7rem;
-  }
-  .reelframe {
-    flex: 1;
-    min-height: 0;
-    display: grid;
-    place-items: center;
+    margin: 0.5rem 0.6rem;
     padding: 0.7rem;
     border-radius: var(--radius-lg);
+    /* A themed cabinet so empty space reads as atmosphere, not dead black. */
     background:
-      radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--c) 32%, transparent), transparent 70%),
+      radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--c) 32%, transparent), transparent 62%),
       var(--panel-grad);
     border: 1px solid var(--line);
-    box-shadow:
-      inset 0 0 40px rgba(0, 0, 0, 0.5),
-      0 0 0 3px color-mix(in srgb, var(--c) 35%, transparent),
-      var(--shadow-2);
+    box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
   }
   .board {
     flex: 1;
@@ -251,6 +243,15 @@
     width: 100%;
     display: grid;
     place-items: center;
+  }
+  /* The canvas draws its own framed background; size it to the reels exactly so
+     there's no big empty bordered box on small grids. */
+  .board :global(canvas) {
+    border-radius: var(--radius-lg);
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--c) 45%, transparent),
+      0 0 26px color-mix(in srgb, var(--c) 25%, transparent),
+      var(--shadow-2);
   }
 
   .bonusband {
