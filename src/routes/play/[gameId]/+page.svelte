@@ -14,6 +14,7 @@
   import GameInfo from '$lib/components/GameInfo.svelte';
   import BetControl from '$lib/components/BetControl.svelte';
   import WalletCapsule from '$lib/components/WalletCapsule.svelte';
+  import GameShell from '$lib/components/GameShell.svelte';
 
   const gameId = page.params.gameId ?? '';
   const game = getGame(gameId);
@@ -138,53 +139,59 @@
   }
 </script>
 
-<header class="topbar">
-  <button class="icon-btn" onclick={() => goto(`${base}/`)} aria-label="Back to hub">‹</button>
-  <div class="title">{game?.meta.title ?? 'Unknown game'}</div>
-  <WalletCapsule compact />
-</header>
+<GameShell>
+  {#snippet header()}
+    <header class="topbar">
+      <button class="icon-btn" onclick={() => goto(`${base}/`)} aria-label="Back to hub">‹</button>
+      <div class="title">{game?.meta.title ?? 'Unknown game'}</div>
+      <WalletCapsule compact />
+    </header>
+  {/snippet}
 
-{#if !game || !game.meta.playable}
-  <div class="empty">
-    <p>{game ? `${game.meta.title} is coming soon.` : 'Game not found.'}</p>
-    <button class="btn" onclick={() => goto(`${base}/`)}>Back to hub</button>
-  </div>
-{:else}
-  <section class="stage">
-    <div class="meter">
-      <button class="icon-btn sm" onclick={toggleSound} aria-label="Toggle sound">
-        {$settings.soundOn ? '🔊' : '🔇'}
-      </button>
-      {#if inBonus}
-        <div class="bonus">FREE SPINS · {fsRemaining}/{fsTotal} · ×{multiplier}</div>
-      {:else}
-        <div class="win" class:has={win > 0}>
-          <span class="muted">WIN</span><strong class="tabular">{fmt(displayWin)}</strong>
-        </div>
-      {/if}
-      <button class="icon-btn sm" onclick={() => (showInfo = true)} aria-label="Game info">ⓘ</button>
-    </div>
-
-    <div class="board" bind:this={boardEl} style="--c:{game.meta.color}"></div>
-    {#if message}<div class="overlay message">{message}</div>{/if}
-    {#if banner}<div class="overlay banner {banner.cls}">{banner.label}</div>{/if}
-  </section>
-
-  <section class="panel">
-    <div class="controls">
-      <BetControl disabled={busy} />
-      <button class="btn btn-primary spin" onclick={() => spin(false)} disabled={busy}>
-        {busy ? '···' : 'SPIN'}
-      </button>
-    </div>
-
-    {#if game.meta.bonusBuyCost}
-      <button class="btn btn-gold buy" onclick={() => spin(true)} disabled={busy}>
-        Buy Bonus <span class="tabular">· {fmt(buyCost)}</span>
-      </button>
+  {#snippet canvas()}
+    {#if !game || !game.meta.playable}
+      <div class="empty">
+        <p>{game ? `${game.meta.title} is coming soon.` : 'Game not found.'}</p>
+        <button class="btn" onclick={() => goto(`${base}/`)}>Back to hub</button>
+      </div>
+    {:else}
+      <div class="board" bind:this={boardEl} style="--c:{game.meta.color}"></div>
+      <div class="meter">
+        <button class="icon-btn sm" onclick={toggleSound} aria-label="Toggle sound">
+          {$settings.soundOn ? '🔊' : '🔇'}
+        </button>
+        {#if inBonus}
+          <div class="bonus">FREE SPINS · {fsRemaining}/{fsTotal} · ×{multiplier}</div>
+        {:else}
+          <div class="win" class:has={win > 0}>
+            <span class="muted">WIN</span><strong class="tabular">{fmt(displayWin)}</strong>
+          </div>
+        {/if}
+        <button class="icon-btn sm" onclick={() => (showInfo = true)} aria-label="Game info">ⓘ</button>
+      </div>
+      {#if message}<div class="overlay message">{message}</div>{/if}
+      {#if banner}<div class="overlay banner {banner.cls}">{banner.label}</div>{/if}
     {/if}
-  </section>
-{/if}
+  {/snippet}
+
+  {#snippet controls()}
+    {#if game && game.meta.playable}
+      <section class="panel">
+        <div class="controls">
+          <BetControl disabled={busy} />
+          <button class="btn btn-primary spin" onclick={() => spin(false)} disabled={busy}>
+            {busy ? '···' : 'SPIN'}
+          </button>
+        </div>
+        {#if game.meta.bonusBuyCost}
+          <button class="btn btn-gold buy" onclick={() => spin(true)} disabled={busy}>
+            Buy Bonus <span class="tabular">· {fmt(buyCost)}</span>
+          </button>
+        {/if}
+      </section>
+    {/if}
+  {/snippet}
+</GameShell>
 
 {#if showInfo && game}
   <GameInfo {game} onClose={() => (showInfo = false)} />
@@ -195,7 +202,7 @@
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    padding: calc(0.4rem + env(safe-area-inset-top)) 0.7rem 0.4rem;
+    padding: 0.5rem 0.7rem;
     flex: none;
   }
   .topbar .title {
@@ -206,13 +213,23 @@
     font-size: 1rem;
     letter-spacing: 0.5px;
   }
+  /* Win/free-spins meter overlays the top of the full-bleed board. */
   .meter {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 3;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    margin-bottom: 0.4rem;
-    flex: none;
+    padding: 0.5rem 0.7rem;
+    background: linear-gradient(180deg, rgba(15, 33, 46, 0.85), transparent);
+    pointer-events: none;
+  }
+  .meter .icon-btn {
+    pointer-events: auto;
   }
   .meter .win {
     display: flex;
@@ -251,38 +268,16 @@
     font-size: 0.95rem;
   }
 
-  .stage {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    margin: 0 0.5rem;
-    padding: 0.5rem;
-    border-radius: var(--radius-lg);
-    /* A themed cabinet so empty space reads as atmosphere, not dead black. */
-    background:
-      radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--c) 32%, transparent), transparent 62%),
-      var(--panel-grad);
-    border: 1px solid var(--line);
-    box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.55);
-    overflow: hidden;
-  }
+  /* Full-bleed board: fills the entire canvas region, no boxed card. */
   .board {
-    flex: 1;
-    min-height: 0;
-    width: 100%;
+    position: absolute;
+    inset: 0;
     display: grid;
     place-items: center;
-  }
-  /* The canvas draws its own framed background; size it to the reels exactly so
-     there's no big empty bordered box on small grids. */
-  .board :global(canvas) {
-    border-radius: var(--radius-lg);
-    box-shadow:
-      0 0 0 2px color-mix(in srgb, var(--c) 45%, transparent),
-      0 0 26px color-mix(in srgb, var(--c) 25%, transparent),
-      var(--shadow-2);
+    background:
+      radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--c) 26%, transparent), transparent 60%),
+      radial-gradient(100% 100% at 50% 100%, rgba(0, 0, 0, 0.45), transparent 55%),
+      var(--bg-2);
   }
 
   .overlay {
@@ -330,10 +325,9 @@
   }
 
   .panel {
-    flex: none;
     background: var(--panel-grad);
     border-top: 1px solid var(--line);
-    padding: 0.55rem 0.7rem calc(0.55rem + env(safe-area-inset-bottom));
+    padding: 0.6rem 0.7rem;
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
   }
   .controls {
@@ -357,7 +351,8 @@
     font-size: 0.85rem;
   }
   .empty {
-    flex: 1;
+    position: absolute;
+    inset: 0;
     text-align: center;
     padding: 3rem 1rem;
     display: flex;

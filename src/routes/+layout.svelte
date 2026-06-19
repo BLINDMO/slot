@@ -16,14 +16,14 @@
 
 <style>
   main {
+    /* The ONE full-height container — 100% of the locked body. Every page fills
+       it; there is no other element claiming viewport height anywhere. */
+    position: relative;
+    height: 100%;
     max-width: 480px;
     margin: 0 auto;
-    /* Exactly the viewport: game screens fit with no page scroll; the hub (taller
-       content) scrolls inside this one container. */
-    height: 100dvh;
-    overflow-y: auto;
-    overflow-x: hidden;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
 </style>

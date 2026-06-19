@@ -51,15 +51,21 @@ body {
   margin: 0;
   padding: 0;
   color: var(--text);
-  min-height: 100%;
+  height: 100%;
   overscroll-behavior: none;
 }
 
+/* Lock the viewport like a native app: the page itself never scrolls, so the
+   iOS Safari toolbar can't collapse/expand and trigger the dvh reflow + repaint
+   "ghost" that duplicated controls on every screen. All scrolling happens inside
+   dedicated regions (e.g. the hub list). */
 body {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
   background:
     radial-gradient(140% 55% at 50% -10%, #182a33 0%, rgba(0, 0, 0, 0) 60%),
     var(--bg);
-  background-attachment: fixed;
 }
 
 button {

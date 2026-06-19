@@ -5,17 +5,8 @@
   import InstallPrompt from '$lib/components/InstallPrompt.svelte';
   import WalletCapsule from '$lib/components/WalletCapsule.svelte';
   import BottomNav from '$lib/components/BottomNav.svelte';
-
-  const DECO: Record<string, string> = {
-    blackwaterBay: '🏴‍☠️',
-    vaultbreakers: '🏦',
-    highNoon: '🤠',
-    forgeOfValhalla: '⚒️',
-    luckySevens: '🍒',
-    novaDrift: '🚀',
-    plinko: '🔵',
-    keno: '🎯'
-  };
+  import GameShell from '$lib/components/GameShell.svelte';
+  import GameArt from '$lib/components/GameArt.svelte';
 
   let q = $state('');
   let searchEl = $state<HTMLInputElement>();
@@ -25,81 +16,78 @@
   const slots = $derived(GAMES.filter((g) => match(g.meta.title)));
 </script>
 
-<header class="topbar">
-  <div class="brand"><span class="mark">🎰</span><span class="word">SLOT HUB</span></div>
-  <WalletCapsule />
-</header>
+<GameShell scroll>
+  {#snippet header()}
+    <header class="topbar">
+      <div class="brand"><span class="word">SLOT HUB</span></div>
+      <WalletCapsule />
+    </header>
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" stroke-linecap="round" />
+      </svg>
+      <input bind:this={searchEl} bind:value={q} placeholder="Search your game" />
+    </div>
+  {/snippet}
 
-<div class="search">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" stroke-linecap="round" />
-  </svg>
-  <input bind:this={searchEl} bind:value={q} placeholder="Search your game" />
-</div>
+  {#snippet canvas()}
+    <InstallPrompt />
 
-<div class="scroll">
-  <InstallPrompt />
-
-  {#if originals.length}
-    <section class="row">
-      <div class="rowhead">
-        <span class="rhicon" style="color:var(--blue-2)">★</span>
-        <h2>Originals</h2>
-        <span class="count">{originals.length}</span>
-      </div>
-      <div class="cards">
-        {#each originals as g (g.id)}
-          <a class="card" href="{base}/instant/{g.id}" style="--c:{g.color}">
-            <div class="thumb">
-              <span class="deco">{DECO[g.id] ?? '🎲'}</span>
-              <span class="rtp">99% RTP</span>
-              <div class="scrim"><strong>{g.title}</strong></div>
-            </div>
-          </a>
-        {/each}
-      </div>
-    </section>
-  {/if}
-
-  {#if slots.length}
-    <section class="row">
-      <div class="rowhead">
-        <span class="rhicon">🎰</span>
-        <h2>Slots</h2>
-        <span class="count">{slots.length}</span>
-      </div>
-      <div class="cards">
-        {#each slots as g (g.meta.id)}
-          {#if g.meta.playable}
-            <a class="card" href="{base}/play/{g.meta.id}" style="--c:{g.meta.color}">
+    {#if originals.length}
+      <section class="row">
+        <div class="rowhead"><h2>Originals</h2><span class="count">{originals.length}</span></div>
+        <div class="cards">
+          {#each originals as g (g.id)}
+            <a class="card" href="{base}/instant/{g.id}" style="--c:{g.color}">
               <div class="thumb">
-                <span class="deco">{DECO[g.meta.id] ?? '🎰'}</span>
-                <span class="rtp">{(g.meta.targetRtp * 100).toFixed(1)}%</span>
-                <div class="scrim"><strong>{g.meta.title}</strong></div>
+                <span class="art"><GameArt id={g.id} /></span>
+                <span class="rtp">99% RTP</span>
+                <div class="scrim"><strong>{g.title}</strong></div>
               </div>
             </a>
-          {:else}
-            <div class="card soon" style="--c:{g.meta.color}">
-              <div class="thumb">
-                <span class="deco">{DECO[g.meta.id] ?? '🎰'}</span>
-                <span class="lock">🔒</span>
-                <div class="scrim"><strong>{g.meta.title}</strong><em>Soon</em></div>
+          {/each}
+        </div>
+      </section>
+    {/if}
+
+    {#if slots.length}
+      <section class="row">
+        <div class="rowhead"><h2>Slots</h2><span class="count">{slots.length}</span></div>
+        <div class="cards">
+          {#each slots as g (g.meta.id)}
+            {#if g.meta.playable}
+              <a class="card" href="{base}/play/{g.meta.id}" style="--c:{g.meta.color}">
+                <div class="thumb">
+                  <span class="art"><GameArt id={g.meta.id} /></span>
+                  <span class="rtp">{(g.meta.targetRtp * 100).toFixed(1)}%</span>
+                  <div class="scrim"><strong>{g.meta.title}</strong></div>
+                </div>
+              </a>
+            {:else}
+              <div class="card soon" style="--c:{g.meta.color}">
+                <div class="thumb">
+                  <span class="art"><GameArt id={g.meta.id} /></span>
+                  <span class="lock">Soon</span>
+                  <div class="scrim"><strong>{g.meta.title}</strong></div>
+                </div>
               </div>
-            </div>
-          {/if}
-        {/each}
-      </div>
-    </section>
-  {/if}
+            {/if}
+          {/each}
+        </div>
+      </section>
+    {/if}
 
-  {#if !originals.length && !slots.length}
-    <p class="noresult muted">No games match “{q}”.</p>
-  {/if}
+    {#if !originals.length && !slots.length}
+      <p class="noresult muted">No games match “{q}”.</p>
+    {/if}
 
-  <footer class="foot muted">Virtual credits only · no real-money wagering · data stored on this device.</footer>
-</div>
+    <footer class="foot muted">Virtual credits only · no real-money wagering · data stored on this device.</footer>
+  {/snippet}
 
-<BottomNav active="casino" onSearch={() => searchEl?.focus()} />
+  {#snippet controls()}
+    <BottomNav active="casino" onSearch={() => searchEl?.focus()} />
+  {/snippet}
+</GameShell>
 
 <style>
   .topbar {
@@ -108,16 +96,13 @@
     justify-content: space-between;
     align-items: center;
     gap: 0.6rem;
-    padding: calc(0.55rem + env(safe-area-inset-top)) 0.8rem 0.55rem;
+    padding: 0.55rem 0.8rem;
   }
   .brand {
     display: flex;
     align-items: center;
     gap: 0.45rem;
     min-width: 0;
-  }
-  .mark {
-    font-size: 1.35rem;
   }
   .word {
     font-weight: 800;
@@ -160,12 +145,6 @@
     color: var(--muted);
   }
 
-  .scroll {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-  }
-
   .row {
     margin-bottom: 0.4rem;
   }
@@ -173,10 +152,7 @@
     display: flex;
     align-items: center;
     gap: 0.45rem;
-    padding: 0.5rem 0.85rem 0.45rem;
-  }
-  .rhicon {
-    font-size: 1rem;
+    padding: 0.6rem 0.85rem 0.45rem;
   }
   .rowhead h2 {
     margin: 0;
@@ -221,9 +197,11 @@
       radial-gradient(120% 90% at 30% 12%, color-mix(in srgb, var(--c) 85%, black 0%), #0b1922 92%);
     box-shadow: var(--shadow-1);
   }
-  .deco {
-    font-size: 2.9rem;
-    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
+  .art {
+    color: #fff;
+    opacity: 0.95;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+    transform: translateY(-6px);
   }
   .rtp {
     position: absolute;
@@ -240,7 +218,12 @@
     position: absolute;
     top: 0.4rem;
     right: 0.4rem;
-    font-size: 0.9rem;
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: var(--gold);
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 6px;
+    padding: 0.12rem 0.35rem;
   }
   .soon .thumb {
     filter: grayscale(0.7) brightness(0.62);
@@ -260,11 +243,6 @@
     font-size: 0.74rem;
     font-weight: 700;
     line-height: 1.15;
-  }
-  .scrim em {
-    font-style: normal;
-    font-size: 0.6rem;
-    color: var(--gold);
   }
 
   .noresult {

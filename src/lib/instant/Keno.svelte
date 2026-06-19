@@ -2,6 +2,8 @@
   import { balance, bet } from '$store/state';
   import { recordSpin } from '$store/db';
   import BetControl from '$lib/components/BetControl.svelte';
+  import GameShell from '$lib/components/GameShell.svelte';
+  import GameHeader from '$lib/components/GameHeader.svelte';
   import { mulberry32, randomSeed } from '$engine/rng';
   import { POOL, KRISKS, type KRisk, kenoPaytable, playKeno } from './keno';
   import { sfx } from '$lib/audio';
@@ -119,65 +121,75 @@
 
 </script>
 
-<div class="board">
-  {#if banner}<div class="banner">{banner}</div>{/if}
-  {#if flash}<div class="flash">{flash}</div>{/if}
+<GameShell>
+  {#snippet header()}
+    <GameHeader title="Keno" />
+  {/snippet}
 
-  <div class="grid">
-    {#each tiles as n}
-      <button class="tile {tileState(n)}" onclick={() => toggle(n)} disabled={busy}>
-        {#if tileState(n) === 'hit'}◆{:else}{n}{/if}
-      </button>
-    {/each}
-  </div>
+  {#snippet canvas()}
+    <div class="board">
+      {#if banner}<div class="banner">{banner}</div>{/if}
+      {#if flash}<div class="flash">{flash}</div>{/if}
 
-  <div class="counter">
-    <span class="muted">{selected.length} / 10 selected</span>
-    {#if busy || resultRow !== null}
-      <span class="live">{liveMatches} match{liveMatches === 1 ? '' : 'es'}</span>
-    {/if}
-  </div>
-</div>
-
-<section class="panel">
-  <div class="paystrip">
-    {#each payEntries as e}
-      <div class="pay" class:on={resultRow === e.matches}>
-        <span class="pm">{e.matches}★</span>
-        <span class="px">{e.m > 0 ? `${e.m}×` : '—'}</span>
+      <div class="grid">
+        {#each tiles as n}
+          <button class="tile {tileState(n)}" onclick={() => toggle(n)} disabled={busy}>
+            {#if tileState(n) === 'hit'}◆{:else}{n}{/if}
+          </button>
+        {/each}
       </div>
-    {/each}
-  </div>
-  <div class="rowctrl">
-    <span class="lbl">Risk</span>
-    <div class="segment">
-      {#each KRISKS as r}
-        <button class:on={risk === r} onclick={() => !busy && (risk = r)}>{r}</button>
-      {/each}
+
+      <div class="counter">
+        <span class="muted">{selected.length} / 10 selected</span>
+        {#if busy || resultRow !== null}
+          <span class="live">{liveMatches} match{liveMatches === 1 ? '' : 'es'}</span>
+        {/if}
+      </div>
     </div>
-  </div>
-  <div class="actions">
-    <button class="btn" onclick={autoPick} disabled={busy}>Auto Pick</button>
-    <button class="btn" onclick={clearPicks} disabled={busy}>Clear</button>
-  </div>
-  <div class="controls">
-    <BetControl disabled={busy} />
-    <button class="btn btn-primary play" onclick={play} disabled={busy || selected.length === 0}>
-      {busy ? '···' : 'PLAY'}
-    </button>
-  </div>
-</section>
+  {/snippet}
+
+  {#snippet controls()}
+    <section class="panel">
+      <div class="paystrip">
+        {#each payEntries as e}
+          <div class="pay" class:on={resultRow === e.matches}>
+            <span class="pm">{e.matches}★</span>
+            <span class="px">{e.m > 0 ? `${e.m}×` : '—'}</span>
+          </div>
+        {/each}
+      </div>
+      <div class="rowctrl">
+        <span class="lbl">Risk</span>
+        <div class="segment">
+          {#each KRISKS as r}
+            <button class:on={risk === r} onclick={() => !busy && (risk = r)}>{r}</button>
+          {/each}
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" onclick={autoPick} disabled={busy}>Auto Pick</button>
+        <button class="btn" onclick={clearPicks} disabled={busy}>Clear</button>
+      </div>
+      <div class="controls">
+        <BetControl disabled={busy} />
+        <button class="btn btn-primary play" onclick={play} disabled={busy || selected.length === 0}>
+          {busy ? '···' : 'PLAY'}
+        </button>
+      </div>
+    </section>
+  {/snippet}
+</GameShell>
 
 <style>
   .board {
-    flex: 1;
-    min-height: 0;
-    position: relative;
-    padding: 0.6rem 0.8rem 0.3rem;
+    position: absolute;
+    inset: 0;
+    padding: 0.7rem 0.8rem 0.4rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 0.5rem;
+    overflow: hidden;
     background: radial-gradient(120% 55% at 50% 8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%);
   }
   /* 5×8 portrait grid fills a tall phone with large, readable tiles. */
@@ -302,7 +314,7 @@
     flex: none;
     background: var(--panel-grad);
     border-top: 1px solid var(--line);
-    padding: 0.5rem 0.7rem calc(0.55rem + env(safe-area-inset-bottom));
+    padding: 0.55rem 0.7rem;
   }
   .rowctrl {
     display: flex;

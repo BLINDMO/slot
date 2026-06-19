@@ -4,6 +4,8 @@
   import { balance, bet } from '$store/state';
   import { recordSpin } from '$store/db';
   import BetControl from '$lib/components/BetControl.svelte';
+  import GameShell from '$lib/components/GameShell.svelte';
+  import GameHeader from '$lib/components/GameHeader.svelte';
   import { mulberry32, randomSeed } from '$engine/rng';
   import {
     MIN_ROWS,
@@ -20,7 +22,7 @@
 
   let rows = $state(12);
   let risk = $state<Risk>('medium');
-  let canvas = $state<HTMLCanvasElement>();
+  let canvasEl = $state<HTMLCanvasElement>();
   let wrap = $state<HTMLDivElement>();
   let flash = $state<string | null>(null);
 
@@ -61,19 +63,21 @@
   }
 
   function resize() {
-    if (!wrap || !canvas) return;
-    W = Math.min((wrap.clientWidth || 360) - 6, 520);
-    // Fill the available height so there's no dead gap above/below the board.
-    H = Math.max(300, Math.min((wrap.clientHeight || W) - 2, Math.round(W * 1.7)));
+    if (!wrap || !canvasEl) return;
+    // Fill the canvas region edge-to-edge (full bleed) — read size FROM the
+    // container, never guess.
+    W = wrap.clientWidth;
+    H = wrap.clientHeight;
+    if (W < 10 || H < 10) return;
     dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = W * dpr;
-    canvas.height = H * dpr;
-    canvas.style.width = `${W}px`;
-    canvas.style.height = `${H}px`;
+    canvasEl.width = W * dpr;
+    canvasEl.height = H * dpr;
+    canvasEl.style.width = `${W}px`;
+    canvasEl.style.height = `${H}px`;
   }
 
   function draw() {
-    const ctx = canvas?.getContext('2d');
+    const ctx = canvasEl?.getContext('2d');
     if (!ctx) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
@@ -196,71 +200,78 @@
     });
   }
 
+  let ro: ResizeObserver | null = null;
   onMount(() => {
     resize();
-    window.addEventListener('resize', resize);
+    ro = new ResizeObserver(() => resize());
+    if (wrap) ro.observe(wrap);
     raf = requestAnimationFrame(draw);
   });
   onDestroy(() => {
     cancelAnimationFrame(raf);
-    window.removeEventListener('resize', resize);
+    ro?.disconnect();
     gsap.killTweensOf(balls);
   });
 </script>
 
-<div class="board" bind:this={wrap}>
-  <canvas bind:this={canvas}></canvas>
-  {#if flash}<div class="flash">{flash}</div>{/if}
-  {#if ticker.length}
-    <div class="ticker">
-      {#each ticker as t}
-        <span class="chip" style="--c:{t.color}">{t.mult}×</span>
-      {/each}
-    </div>
-  {/if}
-</div>
+<GameShell>
+  {#snippet header()}
+    <GameHeader title="Plinko" />
+  {/snippet}
 
-<section class="panel">
-  <div class="rowctrl">
-    <div class="field-col">
-      <span class="lbl">Risk</span>
-      <div class="segment">
-        {#each RISKS as r}
-          <button class:on={risk === r} onclick={() => (risk = r)}>{r}</button>
-        {/each}
-      </div>
+  {#snippet canvas()}
+    <div class="board" bind:this={wrap}>
+      <canvas bind:this={canvasEl}></canvas>
+      {#if flash}<div class="flash">{flash}</div>{/if}
+      {#if ticker.length}
+        <div class="ticker">
+          {#each ticker as t}
+            <span class="chip" style="--c:{t.color}">{t.mult}×</span>
+          {/each}
+        </div>
+      {/if}
     </div>
-    <div class="field-col rows">
-      <span class="lbl">Rows</span>
-      <div class="rowstep">
-        <button class="icon-btn" onclick={() => (rows = Math.max(MIN_ROWS, rows - 1))}>−</button>
-        <strong class="tabular">{rows}</strong>
-        <button class="icon-btn" onclick={() => (rows = Math.min(MAX_ROWS, rows + 1))}>+</button>
-      </div>
-    </div>
-  </div>
+  {/snippet}
 
-  <div class="controls">
-    <BetControl />
-    <button class="btn btn-primary drop" onclick={drop}>DROP</button>
-  </div>
-</section>
+  {#snippet controls()}
+    <section class="panel">
+      <div class="rowctrl">
+        <div class="field-col">
+          <span class="lbl">Risk</span>
+          <div class="segment">
+            {#each RISKS as r}
+              <button class:on={risk === r} onclick={() => (risk = r)}>{r}</button>
+            {/each}
+          </div>
+        </div>
+        <div class="field-col rows">
+          <span class="lbl">Rows</span>
+          <div class="rowstep">
+            <button class="icon-btn" onclick={() => (rows = Math.max(MIN_ROWS, rows - 1))}>−</button>
+            <strong class="tabular">{rows}</strong>
+            <button class="icon-btn" onclick={() => (rows = Math.min(MAX_ROWS, rows + 1))}>+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <BetControl />
+        <button class="btn btn-primary drop" onclick={drop}>DROP</button>
+      </div>
+    </section>
+  {/snippet}
+</GameShell>
 
 <style>
   .board {
-    flex: 1;
-    min-height: 0;
-    position: relative;
+    position: absolute;
+    inset: 0;
     display: grid;
     place-items: center;
-    padding: 0.4rem 0;
+    background: radial-gradient(120% 90% at 50% 0%, #12222e, #07090f 80%);
   }
   canvas {
     display: block;
-    border-radius: var(--radius-lg);
-    background: radial-gradient(120% 90% at 50% 0%, #10202b, #07090f 75%);
-    border: 1px solid color-mix(in srgb, var(--c, #19c3c9) 35%, var(--line));
-    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.6);
   }
   .flash {
     position: absolute;
@@ -306,7 +317,7 @@
     flex: none;
     background: var(--panel-grad);
     border-top: 1px solid var(--line);
-    padding: 0.55rem 0.7rem calc(0.55rem + env(safe-area-inset-bottom));
+    padding: 0.6rem 0.7rem;
   }
   .rowctrl {
     display: grid;

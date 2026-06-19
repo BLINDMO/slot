@@ -33,7 +33,6 @@
     align-items: stretch;
     background: var(--bg-2);
     border-top: 1px solid var(--line);
-    padding-bottom: env(safe-area-inset-bottom);
   }
   .item {
     flex: 1;
