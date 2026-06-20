@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { gsap } from 'gsap';
   import { balance, bet } from '$store/state';
   import { recordSpin } from '$store/db';
   import BetControl from '$lib/components/BetControl.svelte';
@@ -31,10 +30,33 @@
   let ticker = $state<{ mult: number; color: string }[]>([]);
   let winPopup = $state<{ amount: number; label: string; accent: string } | null>(null);
 
-  type Ball = { x: number; y: number; scale: number; color: string; trail: { x: number; y: number }[] };
+  /**
+   * A physically-simulated ball. It free-falls under gravity, pops off each peg
+   * with an upward bounce, then arcs to the next peg. The horizontal speed of
+   * each hop is solved so the ball lands exactly on the math-chosen peg/slot, so
+   * the motion is real physics yet the outcome stays RTP-accurate.
+   */
+  type Ball = {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    r: number; // next peg row to reach (1..rows), then rows+1 = dropping into bin
+    tx: number; // current hop target x
+    ty: number; // current hop target y
+    path: number[]; // res.lane
+    slot: number;
+    mult: number;
+    squash: number; // 0..1 impact deformation, decays each frame
+    color: string;
+    edge: string;
+    settled: boolean;
+    rest: number; // frames to keep showing after settling
+    trail: { x: number; y: number }[];
+  };
   const balls: Ball[] = [];
   const pegFlash = new Map<string, number>(); // "r:i" -> 0..1
-  const ripples: { x: number; y: number; t: number }[] = []; // expanding peg-hit rings
+  const ripples: { x: number; y: number; t: number }[] = [];
   const slotPop = new Map<number, number>(); // slot index -> 0..1 landing bounce
 
   let W = 360;
@@ -43,14 +65,15 @@
   let raf = 0;
 
   // --- geometry -----------------------------------------------------------
-  const topY = () => 24;
-  const slotY = () => H - 34;
-  const rowGap = () => (slotY() - topY() - 10) / (rows + 1);
+  const topY = () => 26;
+  const slotY = () => H - 30;
+  const rowGap = () => (slotY() - topY() - 14) / (rows + 1);
   const step = () => W / (rows + 2);
   function laneX(v: number, r: number): number {
     return W / 2 + (v - r / 2) * step();
   }
   const pegY = (r: number) => topY() + r * rowGap();
+  const ballRadius = () => Math.max(4.5, step() * 0.22);
 
   // --- colours ------------------------------------------------------------
   function lerpColor(a: number[], b: number[], t: number): string {
@@ -60,7 +83,7 @@
   function slotColor(mult: number): string {
     const max = Math.max(...multipliers);
     const t = Math.min(1, Math.log(mult + 0.0001) / Math.log(max + 0.0001));
-    // teal -> yellow -> orange -> pink
+    // teal -> yellow -> orange -> pink, matching the Stake-style risk gradient
     if (t < 0.5) return lerpColor([34, 157, 143], [233, 196, 106], t / 0.5);
     if (t < 0.8) return lerpColor([233, 196, 106], [231, 111, 81], (t - 0.5) / 0.3);
     return lerpColor([231, 111, 81], [255, 61, 129], (t - 0.8) / 0.2);
@@ -68,8 +91,6 @@
 
   function resize() {
     if (!wrap || !canvasEl) return;
-    // Fill the canvas region edge-to-edge (full bleed) — read size FROM the
-    // container, never guess.
     W = wrap.clientWidth;
     H = wrap.clientHeight;
     if (W < 10 || H < 10) return;
@@ -80,25 +101,91 @@
     canvasEl.style.height = `${H}px`;
   }
 
+  // --- physics ------------------------------------------------------------
+  // Tuned so each peg-to-peg hop reads as a believable bounce. Gravity and the
+  // upward pop both scale with the board so it feels identical at any row count.
+  const gravity = () => rowGap() * 0.062;
+  const popUp = () => rowGap() * 0.2;
+
+  /** Aim a ball at its next peg (or the final bin), solving vx so it arrives there. */
+  function aim(b: Ball) {
+    let tx: number;
+    let ty: number;
+    if (b.r <= rows) {
+      tx = laneX(b.path[b.r], b.r);
+      ty = pegY(b.r);
+    } else {
+      tx = laneX(b.slot, rows);
+      ty = slotY() - ballRadius() - 1;
+    }
+    b.tx = tx;
+    b.ty = ty;
+    const g = gravity();
+    const dy = Math.max(1, ty - b.y);
+    // First drop from the funnel has no upward pop; every peg bounce does.
+    const vy0 = b.r <= 1 ? 0 : -popUp();
+    const T = (-vy0 + Math.sqrt(vy0 * vy0 + 2 * g * dy)) / g;
+    b.vx = (tx - b.x) / T;
+    b.vy = vy0;
+  }
+
+  function stepBall(b: Ball) {
+    if (b.settled) {
+      b.rest -= 1;
+      return;
+    }
+    const g = gravity();
+    b.vy += g;
+    b.x += b.vx;
+    b.y += b.vy;
+    b.squash *= 0.82;
+
+    b.trail.push({ x: b.x, y: b.y });
+    if (b.trail.length > 7) b.trail.shift();
+
+    // Arrived at the hop target (moving downward through it).
+    if (b.vy > 0 && b.y >= b.ty) {
+      b.x = b.tx;
+      b.y = b.ty;
+      const impactSpeed = Math.min(1, Math.abs(b.vy) / (popUp() + g * 8));
+      if (b.r <= rows) {
+        // Peg bounce: squash, ripple, light up the peg, tick a sound.
+        b.squash = 0.55 + impactSpeed * 0.45;
+        const col = b.path[b.r];
+        pegFlash.set(`${b.r}:${col}`, 1);
+        ripples.push({ x: b.tx, y: b.ty, t: 0 });
+        if (b.r % 2 === 0) sfx.reelStop();
+        b.r += 1;
+        aim(b);
+      } else {
+        // Landed in the bin.
+        b.squash = 0.9;
+        b.settled = true;
+        b.rest = 22;
+        settle(b.slot, b.mult);
+      }
+    }
+  }
+
   function draw() {
     const ctx = canvasEl?.getContext('2d');
     if (!ctx) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
 
-    const pegR = Math.max(2.5, step() * 0.09);
+    const pegR = Math.max(2.2, step() * 0.085);
 
     // expanding rings where balls struck pegs
     for (let i = ripples.length - 1; i >= 0; i--) {
       const rp = ripples[i];
-      rp.t += 0.07;
+      rp.t += 0.08;
       if (rp.t >= 1) {
         ripples.splice(i, 1);
         continue;
       }
       ctx.beginPath();
-      ctx.arc(rp.x, rp.y, pegR + rp.t * pegR * 4, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(120,220,255,${(1 - rp.t) * 0.5})`;
+      ctx.arc(rp.x, rp.y, pegR + rp.t * pegR * 3.5, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(150,225,255,${(1 - rp.t) * 0.45})`;
       ctx.lineWidth = 2 * (1 - rp.t);
       ctx.stroke();
     }
@@ -112,14 +199,14 @@
         if (f > 0) {
           ctx.beginPath();
           ctx.arc(x, y, pegR + f * 5, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(120,220,255,${f * 0.35})`;
+          ctx.fillStyle = `rgba(150,225,255,${f * 0.4})`;
           ctx.fill();
+          pegFlash.set(`${r}:${i}`, Math.max(0, f - 0.06));
         }
         ctx.beginPath();
-        ctx.arc(x, y, pegR + f * 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = f > 0 ? `rgba(255,255,255,${0.7 + f * 0.3})` : 'rgba(200,212,235,0.6)';
+        ctx.arc(x, y, pegR + f * 1.2, 0, Math.PI * 2);
+        ctx.fillStyle = f > 0 ? `rgba(255,255,255,${0.75 + f * 0.25})` : 'rgba(190,205,235,0.55)';
         ctx.fill();
-        if (f > 0) pegFlash.set(`${r}:${i}`, Math.max(0, f - 0.05));
       }
     }
 
@@ -132,18 +219,23 @@
         if (pop <= 0) slotPop.delete(k);
         else slotPop.set(k, pop);
       }
-      const lift = Math.sin(pop * Math.PI) * 6; // bounce up then settle
-      const h = 26 + Math.sin(pop * Math.PI) * 6;
+      const lift = Math.sin(pop * Math.PI) * 7;
+      const h = 24 + Math.sin(pop * Math.PI) * 6;
       const x = laneX(k, rows) - sw / 2;
-      const y = slotY() - 12 - lift;
-      ctx.fillStyle = slotColor(multipliers[k]);
+      const y = slotY() - 10 - lift;
+      const col = slotColor(multipliers[k]);
+      // pill with a soft top sheen
+      ctx.fillStyle = col;
       if (pop > 0) {
-        ctx.shadowColor = '#fff';
-        ctx.shadowBlur = 18 * pop;
+        ctx.shadowColor = col;
+        ctx.shadowBlur = 20 * pop;
       }
       roundRect(ctx, x, y, sw, h, 6);
       ctx.fill();
       ctx.shadowBlur = 0;
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      roundRect(ctx, x + 1.5, y + 1.5, sw - 3, h * 0.42, 4);
+      ctx.fill();
       ctx.fillStyle = 'rgba(0,0,0,0.85)';
       ctx.font = `800 ${Math.min(11, sw * 0.34)}px Inter, sans-serif`;
       ctx.textAlign = 'center';
@@ -152,29 +244,57 @@
       ctx.fillText(label, x + sw / 2, y + h / 2);
     }
 
-    // balls + trails
-    const ballR = Math.max(5, step() * 0.2);
-    for (const b of balls) {
-      b.trail.push({ x: b.x, y: b.y });
-      if (b.trail.length > 9) b.trail.shift();
+    // balls: physics step + glossy 3D render
+    const ballR = ballRadius();
+    for (let bi = balls.length - 1; bi >= 0; bi--) {
+      const b = balls[bi];
+      stepBall(b);
+      if (b.settled && b.rest <= 0) {
+        balls.splice(bi, 1);
+        continue;
+      }
+
+      // motion trail
       for (let i = 0; i < b.trail.length; i++) {
-        const a = (i / b.trail.length) * 0.4;
+        const a = (i / b.trail.length) * 0.28;
         ctx.beginPath();
-        ctx.arc(b.trail[i].x, b.trail[i].y, ballR * (0.4 + (i / b.trail.length) * 0.5), 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(120,220,255,${a})`;
+        ctx.arc(b.trail[i].x, b.trail[i].y, ballR * (0.35 + (i / b.trail.length) * 0.45), 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,210,120,${a})`;
         ctx.fill();
       }
+
+      // squash & velocity stretch → sells weight and impact
+      const sq = b.squash;
+      const stretch = Math.min(0.35, Math.abs(b.vy) * 0.01);
+      const sx = 1 + sq * 0.4 - stretch * 0.5;
+      const sy = 1 - sq * 0.32 + stretch;
+
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.scale(sx, sy);
+
+      // glow
       ctx.beginPath();
-      ctx.arc(b.x, b.y, ballR * b.scale, 0, Math.PI * 2);
-      ctx.fillStyle = b.color;
-      ctx.shadowColor = b.color;
-      ctx.shadowBlur = 16;
+      ctx.arc(0, 0, ballR * 1.25, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,190,90,0.18)';
       ctx.fill();
-      ctx.shadowBlur = 0;
+
+      // spherical body
+      const grad = ctx.createRadialGradient(-ballR * 0.35, -ballR * 0.4, ballR * 0.1, 0, 0, ballR);
+      grad.addColorStop(0, '#fff6df');
+      grad.addColorStop(0.45, b.color);
+      grad.addColorStop(1, b.edge);
       ctx.beginPath();
-      ctx.arc(b.x - ballR * 0.25, b.y - ballR * 0.25, ballR * 0.32, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.arc(0, 0, ballR, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
       ctx.fill();
+
+      // specular highlight
+      ctx.beginPath();
+      ctx.arc(-ballR * 0.32, -ballR * 0.36, ballR * 0.3, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.fill();
+      ctx.restore();
     }
 
     raf = requestAnimationFrame(draw);
@@ -201,37 +321,26 @@
     sfx.spin();
 
     const res = dropBall(rng, rows, risk);
-    const accent = '#7be0ff';
-    const ball: Ball = { x: W / 2, y: topY() - 8, scale: 1, color: accent, trail: [] };
+    const ball: Ball = {
+      x: W / 2,
+      y: topY() - ballRadius() * 1.5,
+      vx: 0,
+      vy: 0,
+      r: 1,
+      tx: W / 2,
+      ty: pegY(1),
+      path: res.lane,
+      slot: res.slot,
+      mult: res.multiplier,
+      squash: 0,
+      color: '#ffcf5a',
+      edge: '#b8791e',
+      settled: false,
+      rest: 0,
+      trail: []
+    };
+    aim(ball);
     balls.push(ball);
-
-    const tl = gsap.timeline({
-      onComplete: () => {
-        const idx = balls.indexOf(ball);
-        if (idx >= 0) balls.splice(idx, 1);
-        settle(res.slot, res.multiplier);
-      }
-    });
-    // Fall peg-to-peg: the vertical drop accelerates (gravity), the bounce eases
-    // sideways, a ripple fires on contact, and the ball squashes on impact.
-    for (let r = 1; r <= rows; r++) {
-      const v = res.lane[r];
-      const fast = Math.max(0.05, 0.1 - rows * 0.002);
-      tl.to(ball, {
-        x: laneX(v, r),
-        y: pegY(r),
-        duration: fast,
-        ease: 'power2.in',
-        onStart: () => {
-          pegFlash.set(`${r}:${Math.round(v)}`, 1);
-          ripples.push({ x: laneX(v, r), y: pegY(r), t: 0 });
-          if (r % 2 === 0) sfx.reelStop();
-        }
-      });
-      tl.to(ball, { scale: 0.65, duration: 0.04, ease: 'power2.out' }, '<85%');
-      tl.to(ball, { scale: 1, duration: 0.06, ease: 'back.out(2)' });
-    }
-    tl.to(ball, { x: laneX(res.slot, rows), y: slotY(), duration: 0.12, ease: 'power2.in' });
   }
 
   function settle(slot: number, mult: number) {
@@ -268,7 +377,6 @@
   onDestroy(() => {
     cancelAnimationFrame(raf);
     ro?.disconnect();
-    gsap.killTweensOf(balls);
   });
 </script>
 
@@ -330,7 +438,7 @@
     inset: 0;
     display: grid;
     place-items: center;
-    background: radial-gradient(120% 90% at 50% 0%, #12222e, #07090f 80%);
+    background: radial-gradient(125% 90% at 50% 0%, #141a2e, #0a0c16 78%);
   }
   canvas {
     display: block;

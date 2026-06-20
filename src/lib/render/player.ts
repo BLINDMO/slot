@@ -9,6 +9,8 @@ export interface PlayerCallbacks {
   onMultiplier: (value: number) => void;
   onFreeSpins: (remaining: number, total: number) => void;
   onBonusIntro: () => void;
+  /** A bonus was just triggered — play the dramatic intro for `count` free spins. */
+  onBonusAward: (count: number) => void;
   onMessage: (msg: string | null) => void;
 }
 
@@ -63,9 +65,10 @@ export async function playBook(
         break;
 
       case 'freeSpinsAwarded':
-        cb.onMessage(`+${ev.count} Free Spins!`);
-        await wait(700);
-        cb.onMessage(null);
+        // Dramatic full-screen bonus reveal (Hacksaw-style) before the round.
+        if (soundOn) sfx.bigWin();
+        cb.onBonusAward(ev.count);
+        await wait(2200);
         break;
 
       case 'freeSpinsStart':
@@ -83,7 +86,15 @@ export async function playBook(
         break;
 
       case 'feature':
-        if (ev.name === 'bonusBuy') cb.onBonusIntro();
+        if (ev.name === 'bonusBuy') {
+          cb.onBonusIntro();
+          const spins = typeof ev.data?.spins === 'number' ? ev.data.spins : 0;
+          if (spins > 0) {
+            if (soundOn) sfx.bigWin();
+            cb.onBonusAward(spins);
+            await wait(2200);
+          }
+        }
         break;
 
       case 'finalWin': {

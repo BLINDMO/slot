@@ -13,6 +13,7 @@
   import { gsap } from 'gsap';
   import GameInfo from '$lib/components/GameInfo.svelte';
   import WinPopup from '$lib/components/WinPopup.svelte';
+  import BonusIntro from '$lib/components/BonusIntro.svelte';
   import BetControl from '$lib/components/BetControl.svelte';
   import WalletCapsule from '$lib/components/WalletCapsule.svelte';
   import GameShell from '$lib/components/GameShell.svelte';
@@ -35,6 +36,7 @@
   let fsTotal = $state(0);
   let message = $state<string | null>(null);
   let inBonus = $state(false);
+  let bonusIntro = $state<number | null>(null);
   let showInfo = $state(false);
 
   /** Roll the displayed win counter up to a new target for a satisfying count-up. */
@@ -112,6 +114,7 @@
           inBonus = tot > 0;
         },
         onBonusIntro: () => (inBonus = true),
+        onBonusAward: (count) => (bonusIntro = count),
         onMessage: (m) => (message = m)
       },
       $settings.soundOn
@@ -155,7 +158,7 @@
         <button class="btn" onclick={() => goto(`${base}/`)}>Back to hub</button>
       </div>
     {:else}
-      <div class="board" bind:this={boardEl} style="--c:{game.meta.color}"></div>
+      <div class="board" class:bonus={inBonus} bind:this={boardEl} style="--c:{game.meta.color}"></div>
       <div class="meter">
         <button class="icon-btn sm" onclick={toggleSound} aria-label="Toggle sound">
           {$settings.soundOn ? '🔊' : '🔇'}
@@ -203,6 +206,10 @@
     accent={winPopup.accent}
     onClose={() => (winPopup = null)}
   />
+{/if}
+
+{#if bonusIntro !== null}
+  <BonusIntro count={bonusIntro} onClose={() => (bonusIntro = null)} />
 {/if}
 
 <style>
@@ -289,6 +296,21 @@
       radial-gradient(80% 60% at 15% 110%, color-mix(in srgb, var(--magenta) 16%, transparent), transparent 60%),
       radial-gradient(80% 60% at 85% 110%, color-mix(in srgb, var(--cyan) 14%, transparent), transparent 60%),
       #0a0816;
+    transition: box-shadow 0.3s ease;
+  }
+  /* Free-spins mode: a warm pulsing frame so the board itself feels "in bonus". */
+  .board.bonus {
+    box-shadow:
+      inset 0 0 0 2px rgba(255, 209, 74, 0.65),
+      inset 0 0 38px rgba(255, 170, 40, 0.28);
+    animation: bonusPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes bonusPulse {
+    50% {
+      box-shadow:
+        inset 0 0 0 2px rgba(255, 226, 154, 0.95),
+        inset 0 0 60px rgba(255, 180, 50, 0.45);
+    }
   }
 
   .overlay {

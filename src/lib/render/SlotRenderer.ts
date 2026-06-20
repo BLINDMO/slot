@@ -144,8 +144,8 @@ export class SlotRenderer {
     t.view.scale.set(1, 1);
     this.twFrom(
       t.view.scale,
-      { x: 1.12, y: 0.86 },
-      { x: 1, y: 1, duration: 0.18, ease: 'back.out(3)', delay }
+      { x: 1.08, y: 0.9 },
+      { x: 1, y: 1, duration: 0.22, ease: 'back.out(2.2)', delay }
     );
   }
 
@@ -163,14 +163,16 @@ export class SlotRenderer {
         this.placeTile(t, col, row);
         this.tiles[col][row] = t;
         if (drop) {
+          // Reel feel: each column streams down and stops left-to-right with a
+          // clean decel (no overshoot) so it never fights the land-bounce.
           const targetY = this.cellCenterY(row);
           t.view.position.y = targetY - this.h - this.tileH;
           tweens.push(
             this.tweenP(t.view.position, {
               y: targetY,
-              duration: 0.34,
-              delay: col * 0.045 + row * 0.03,
-              ease: 'back.out(1.5)'
+              duration: 0.32 + row * 0.02,
+              delay: col * 0.075 + row * 0.012,
+              ease: 'power3.out'
             }).then(() => this.landBounce(t))
           );
         }
@@ -270,9 +272,9 @@ export class SlotRenderer {
         tweens.push(
           this.tweenP(t.view.position, {
             y: targetY,
-            duration: 0.3,
-            delay: col * 0.02 + (rows - row) * 0.03,
-            ease: 'back.out(1.2)'
+            duration: 0.28,
+            delay: col * 0.02 + (rows - row) * 0.025,
+            ease: 'power3.out'
           }).then(() => this.landBounce(t))
         );
       }

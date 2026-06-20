@@ -88,7 +88,7 @@ export const highNoon: Game = {
 
     if (bonusBuy) {
       bonusTriggered = true;
-      events.push({ type: 'feature', name: 'bonusBuy' });
+      events.push({ type: 'feature', name: 'bonusBuy', data: { spins: C.FREE_SPINS } });
       runFreeSpins(rng, tally, events);
     } else {
       const board = fill(rng);
