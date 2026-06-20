@@ -12,6 +12,7 @@
   import { sfx } from '$lib/audio';
   import { gsap } from 'gsap';
   import GameInfo from '$lib/components/GameInfo.svelte';
+  import WinPopup from '$lib/components/WinPopup.svelte';
   import BetControl from '$lib/components/BetControl.svelte';
   import WalletCapsule from '$lib/components/WalletCapsule.svelte';
   import GameShell from '$lib/components/GameShell.svelte';
@@ -35,7 +36,6 @@
   let message = $state<string | null>(null);
   let inBonus = $state(false);
   let showInfo = $state(false);
-  let banner = $state<{ label: string; cls: string } | null>(null);
 
   /** Roll the displayed win counter up to a new target for a satisfying count-up. */
   function rollWinTo(target: number) {
@@ -52,10 +52,13 @@
   const fmt = (n: number) => Math.round(n).toLocaleString();
   const buyCost = $derived(game && game.meta.bonusBuyCost ? game.meta.bonusBuyCost * $bet : 0);
 
-  function winTier(mult: number): { label: string; cls: string } | null {
-    if (mult >= 200) return { label: 'EPIC WIN', cls: 'epic' };
-    if (mult >= 75) return { label: 'MEGA WIN', cls: 'mega' };
-    if (mult >= 20) return { label: 'BIG WIN', cls: 'big' };
+  // Win popup: shown for any meaningful win (>= 5x bet). Tier sets label + colour.
+  let winPopup = $state<{ amount: number; label: string; accent: string } | null>(null);
+  function winTierPopup(mult: number, credits: number) {
+    if (mult >= 200) return { amount: credits, label: 'EPIC WIN', accent: '#b06bff' };
+    if (mult >= 75) return { amount: credits, label: 'MEGA WIN', accent: '#f1c232' };
+    if (mult >= 20) return { amount: credits, label: 'BIG WIN', accent: '#19c3c9' };
+    if (mult >= 5) return { amount: credits, label: 'NICE WIN', accent: '#1fd35b' };
     return null;
   }
 
@@ -82,7 +85,7 @@
     }
 
     busy = true;
-    banner = null;
+    winPopup = null;
     win = 0;
     displayWin = 0;
     multiplier = 1;
@@ -128,14 +131,11 @@
       symbolsLanded: book.symbolWins
     });
 
-    const tier = winTier(book.totalWin);
-    if (tier) {
-      banner = tier;
-      setTimeout(() => (banner = null), 1800);
-    }
-
     inBonus = false;
     busy = false;
+
+    const tier = winTierPopup(book.totalWin, payout);
+    if (tier) winPopup = tier;
   }
 </script>
 
@@ -170,7 +170,6 @@
         <button class="icon-btn sm" onclick={() => (showInfo = true)} aria-label="Game info">ⓘ</button>
       </div>
       {#if message}<div class="overlay message">{message}</div>{/if}
-      {#if banner}<div class="overlay banner {banner.cls}">{banner.label}</div>{/if}
     {/if}
   {/snippet}
 
@@ -195,6 +194,15 @@
 
 {#if showInfo && game}
   <GameInfo {game} onClose={() => (showInfo = false)} />
+{/if}
+
+{#if winPopup}
+  <WinPopup
+    amount={winPopup.amount}
+    label={winPopup.label}
+    accent={winPopup.accent}
+    onClose={() => (winPopup = null)}
+  />
 {/if}
 
 <style>
@@ -296,34 +304,6 @@
     color: var(--gold);
     text-shadow: 0 3px 16px rgba(0, 0, 0, 0.8);
   }
-  .banner {
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: 2.4rem;
-    letter-spacing: 1px;
-    animation: pop 0.4s cubic-bezier(0.2, 1.4, 0.3, 1);
-  }
-  .banner.big {
-    color: #7be0ff;
-    text-shadow: 0 0 24px rgba(123, 224, 255, 0.7), 0 3px 10px rgba(0, 0, 0, 0.7);
-  }
-  .banner.mega {
-    color: #ffd34d;
-    font-size: 2.8rem;
-    text-shadow: 0 0 28px rgba(255, 211, 77, 0.8), 0 3px 10px rgba(0, 0, 0, 0.7);
-  }
-  .banner.epic {
-    color: #ff7be0;
-    font-size: 3.1rem;
-    text-shadow: 0 0 34px rgba(255, 123, 224, 0.85), 0 3px 12px rgba(0, 0, 0, 0.8);
-  }
-  @keyframes pop {
-    from {
-      transform: scale(0.5);
-      opacity: 0;
-    }
-  }
-
   .panel {
     background: var(--panel-grad);
     border-top: 1px solid var(--line);

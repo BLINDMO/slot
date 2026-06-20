@@ -182,6 +182,17 @@ export class SlotRenderer {
 
   async highlight(cells: Cell[]): Promise<void> {
     if (!this.mounted || cells.length === 0) return;
+    const winners = new Set(cells.map((c) => `${c.col}:${c.row}`));
+
+    // Dim the losing tiles so the winning cluster/line pops (Pragmatic/Stake feel).
+    for (let col = 0; col < this.tiles.length; col++) {
+      for (let row = 0; row < (this.tiles[col]?.length ?? 0); row++) {
+        const t = this.tiles[col][row];
+        if (!t) continue;
+        if (!winners.has(`${col}:${row}`)) this.tw(t.view, { alpha: 0.28, duration: 0.14 });
+      }
+    }
+
     let cx = 0;
     let cy = 0;
     const tweens: Promise<void>[] = [];
@@ -190,15 +201,17 @@ export class SlotRenderer {
       cy += this.cellCenterY(row);
       const t = this.tiles[col]?.[row];
       if (!t) continue;
+      this.boardLayer.removeChild(t.view); // bring winners above dimmed tiles
+      this.boardLayer.addChild(t.view);
       tweens.push(
         new Promise<void>((res) => {
           this.tw(t.view.scale, {
-            x: 1.2,
-            y: 1.2,
-            duration: 0.16,
+            x: 1.28,
+            y: 1.28,
+            duration: 0.2,
             yoyo: true,
             repeat: 1,
-            ease: 'sine.inOut',
+            ease: 'back.inOut(2)',
             onComplete: res
           });
         })
@@ -206,8 +219,16 @@ export class SlotRenderer {
     }
     const sym = this.tiles[cells[0].col]?.[cells[0].row]?.currentSymbol ?? '';
     const skin = skinFor(this.gameId, sym);
-    this.particles?.burst(cx / cells.length, cy / cells.length, 0.15, skin.color || this.accent);
+    this.particles?.burst(cx / cells.length, cy / cells.length, 0.22, skin.color || this.accent);
     await Promise.all(tweens);
+
+    // Restore losers (skip ones about to tumble away — they get cleared next).
+    for (let col = 0; col < this.tiles.length; col++) {
+      for (let row = 0; row < (this.tiles[col]?.length ?? 0); row++) {
+        const t = this.tiles[col][row];
+        if (t && !winners.has(`${col}:${row}`)) this.tw(t.view, { alpha: 1, duration: 0.18 });
+      }
+    }
   }
 
   async tumble(cleared: Cell[], newBoard: Board): Promise<void> {

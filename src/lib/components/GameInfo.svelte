@@ -45,7 +45,7 @@
       {#each symbols as [id, skin]}
         <div class="symcard" class:special={skin.special}>
           <div class="symtile" style="--c:{toCss(skin.color)}">
-            <span>{skin.glyph}</span>
+            <span>{skin.motif === 'text' ? skin.label : skin.motif}</span>
           </div>
           <span class="symname muted">{id}</span>
         </div>

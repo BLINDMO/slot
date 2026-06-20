@@ -6,6 +6,7 @@
   import BetControl from '$lib/components/BetControl.svelte';
   import GameShell from '$lib/components/GameShell.svelte';
   import GameHeader from '$lib/components/GameHeader.svelte';
+  import WinPopup from '$lib/components/WinPopup.svelte';
   import { mulberry32, randomSeed } from '$engine/rng';
   import {
     MIN_ROWS,
@@ -28,10 +29,13 @@
 
   const multipliers = $derived(plinkoMultipliers(rows, risk));
   let ticker = $state<{ mult: number; color: string }[]>([]);
+  let winPopup = $state<{ amount: number; label: string; accent: string } | null>(null);
 
-  type Ball = { x: number; y: number; scale: number; color: string; landed: boolean };
+  type Ball = { x: number; y: number; scale: number; color: string; trail: { x: number; y: number }[] };
   const balls: Ball[] = [];
   const pegFlash = new Map<string, number>(); // "r:i" -> 0..1
+  const ripples: { x: number; y: number; t: number }[] = []; // expanding peg-hit rings
+  const slotPop = new Map<number, number>(); // slot index -> 0..1 landing bounce
 
   let W = 360;
   let H = 420;
@@ -82,45 +86,95 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
 
+    const pegR = Math.max(2.5, step() * 0.09);
+
+    // expanding rings where balls struck pegs
+    for (let i = ripples.length - 1; i >= 0; i--) {
+      const rp = ripples[i];
+      rp.t += 0.07;
+      if (rp.t >= 1) {
+        ripples.splice(i, 1);
+        continue;
+      }
+      ctx.beginPath();
+      ctx.arc(rp.x, rp.y, pegR + rp.t * pegR * 4, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(120,220,255,${(1 - rp.t) * 0.5})`;
+      ctx.lineWidth = 2 * (1 - rp.t);
+      ctx.stroke();
+    }
+
     // pegs
     for (let r = 1; r <= rows; r++) {
       for (let i = 0; i <= r; i++) {
         const x = laneX(i, r);
         const y = pegY(r);
         const f = pegFlash.get(`${r}:${i}`) ?? 0;
+        if (f > 0) {
+          ctx.beginPath();
+          ctx.arc(x, y, pegR + f * 5, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(120,220,255,${f * 0.35})`;
+          ctx.fill();
+        }
         ctx.beginPath();
-        ctx.arc(x, y, 3 + f * 2, 0, Math.PI * 2);
-        ctx.fillStyle = f > 0 ? `rgba(255,255,255,${0.6 + f * 0.4})` : 'rgba(200,212,235,0.55)';
+        ctx.arc(x, y, pegR + f * 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = f > 0 ? `rgba(255,255,255,${0.7 + f * 0.3})` : 'rgba(200,212,235,0.6)';
         ctx.fill();
-        if (f > 0) pegFlash.set(`${r}:${i}`, Math.max(0, f - 0.06));
+        if (f > 0) pegFlash.set(`${r}:${i}`, Math.max(0, f - 0.05));
       }
     }
 
-    // slots
+    // slots (with landing pop)
     const sw = step() * 0.92;
     for (let k = 0; k <= rows; k++) {
+      let pop = slotPop.get(k) ?? 0;
+      if (pop > 0) {
+        pop = Math.max(0, pop - 0.06);
+        if (pop <= 0) slotPop.delete(k);
+        else slotPop.set(k, pop);
+      }
+      const lift = Math.sin(pop * Math.PI) * 6; // bounce up then settle
+      const h = 26 + Math.sin(pop * Math.PI) * 6;
       const x = laneX(k, rows) - sw / 2;
-      const col = slotColor(multipliers[k]);
-      ctx.fillStyle = col;
-      roundRect(ctx, x, slotY() - 12, sw, 26, 6);
+      const y = slotY() - 12 - lift;
+      ctx.fillStyle = slotColor(multipliers[k]);
+      if (pop > 0) {
+        ctx.shadowColor = '#fff';
+        ctx.shadowBlur = 18 * pop;
+      }
+      roundRect(ctx, x, y, sw, h, 6);
       ctx.fill();
+      ctx.shadowBlur = 0;
       ctx.fillStyle = 'rgba(0,0,0,0.85)';
-      ctx.font = `700 ${Math.min(11, sw * 0.34)}px Rubik, sans-serif`;
+      ctx.font = `800 ${Math.min(11, sw * 0.34)}px Inter, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const label = multipliers[k] >= 100 ? `${multipliers[k]}` : `${multipliers[k]}x`;
-      ctx.fillText(label, x + sw / 2, slotY() + 1);
+      ctx.fillText(label, x + sw / 2, y + h / 2);
     }
 
-    // balls
+    // balls + trails
+    const ballR = Math.max(5, step() * 0.2);
     for (const b of balls) {
+      b.trail.push({ x: b.x, y: b.y });
+      if (b.trail.length > 9) b.trail.shift();
+      for (let i = 0; i < b.trail.length; i++) {
+        const a = (i / b.trail.length) * 0.4;
+        ctx.beginPath();
+        ctx.arc(b.trail[i].x, b.trail[i].y, ballR * (0.4 + (i / b.trail.length) * 0.5), 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(120,220,255,${a})`;
+        ctx.fill();
+      }
       ctx.beginPath();
-      ctx.arc(b.x, b.y, 6 * b.scale, 0, Math.PI * 2);
+      ctx.arc(b.x, b.y, ballR * b.scale, 0, Math.PI * 2);
       ctx.fillStyle = b.color;
       ctx.shadowColor = b.color;
-      ctx.shadowBlur = 12;
+      ctx.shadowBlur = 16;
       ctx.fill();
       ctx.shadowBlur = 0;
+      ctx.beginPath();
+      ctx.arc(b.x - ballR * 0.25, b.y - ballR * 0.25, ballR * 0.32, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.fill();
     }
 
     raf = requestAnimationFrame(draw);
@@ -147,8 +201,8 @@
     sfx.spin();
 
     const res = dropBall(rng, rows, risk);
-    const accent = '#19c3c9';
-    const ball: Ball = { x: W / 2, y: topY() - 8, scale: 1, color: accent, landed: false };
+    const accent = '#7be0ff';
+    const ball: Ball = { x: W / 2, y: topY() - 8, scale: 1, color: accent, trail: [] };
     balls.push(ball);
 
     const tl = gsap.timeline({
@@ -158,33 +212,37 @@
         settle(res.slot, res.multiplier);
       }
     });
-    // Fall through each row, flashing the nearest peg and squashing on contact.
+    // Fall peg-to-peg: the vertical drop accelerates (gravity), the bounce eases
+    // sideways, a ripple fires on contact, and the ball squashes on impact.
     for (let r = 1; r <= rows; r++) {
       const v = res.lane[r];
+      const fast = Math.max(0.05, 0.1 - rows * 0.002);
       tl.to(ball, {
         x: laneX(v, r),
         y: pegY(r),
-        duration: 0.085,
-        ease: 'power1.in',
+        duration: fast,
+        ease: 'power2.in',
         onStart: () => {
           pegFlash.set(`${r}:${Math.round(v)}`, 1);
-          if (r % 3 === 0) sfx.reelStop();
+          ripples.push({ x: laneX(v, r), y: pegY(r), t: 0 });
+          if (r % 2 === 0) sfx.reelStop();
         }
       });
-      tl.to(ball, { scale: 0.7, duration: 0.03 }, '<');
-      tl.to(ball, { scale: 1, duration: 0.05 });
+      tl.to(ball, { scale: 0.65, duration: 0.04, ease: 'power2.out' }, '<85%');
+      tl.to(ball, { scale: 1, duration: 0.06, ease: 'back.out(2)' });
     }
-    tl.to(ball, { x: laneX(res.slot, rows), y: slotY(), duration: 0.1, ease: 'power1.in' });
+    tl.to(ball, { x: laneX(res.slot, rows), y: slotY(), duration: 0.12, ease: 'power2.in' });
   }
 
   function settle(slot: number, mult: number) {
+    slotPop.set(slot, 1);
     const payout = $bet * mult;
     if (payout > 0) balance.update((b) => b + payout);
     ticker = [{ mult, color: slotColor(mult) }, ...ticker].slice(0, 10);
     if (mult >= 10) {
       sfx.bigWin();
-      flash = `${mult}× · ${fmt(payout)}`;
-      setTimeout(() => (flash = null), 1200);
+      const label = mult >= 100 ? 'MEGA WIN' : 'BIG WIN';
+      winPopup = { amount: payout, label, accent: mult >= 100 ? '#f1c232' : '#19c3c9' };
     } else {
       sfx.win(mult);
     }
@@ -261,6 +319,10 @@
     </section>
   {/snippet}
 </GameShell>
+
+{#if winPopup}
+  <WinPopup amount={winPopup.amount} label={winPopup.label} accent={winPopup.accent} onClose={() => (winPopup = null)} />
+{/if}
 
 <style>
   .board {

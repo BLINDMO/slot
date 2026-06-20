@@ -33,6 +33,15 @@
   {#snippet canvas()}
     <InstallPrompt />
 
+    <a class="promo" href="{base}/instant/plinko">
+      <div class="promo-text">
+        <span class="promo-tag">FEATURED · 99% RTP</span>
+        <strong>Stake-style Originals</strong>
+        <span class="promo-sub">Drop, bounce, win — Plinko &amp; Keno</span>
+      </div>
+      <span class="promo-cta">Play ▸</span>
+    </a>
+
     {#if originals.length}
       <section class="row">
         <div class="rowhead"><h2>Originals</h2><span class="count">{originals.length}</span></div>
@@ -145,6 +154,48 @@
     color: var(--muted);
   }
 
+  .promo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin: 0.4rem 0.85rem 0.2rem;
+    padding: 0.9rem 1rem;
+    border-radius: 14px;
+    background:
+      radial-gradient(120% 160% at 0% 0%, #1f6fe0 0%, transparent 55%),
+      linear-gradient(120deg, #16324a, #19c3c9 180%);
+    box-shadow: var(--shadow-1);
+  }
+  .promo-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+  .promo-tag {
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #bfe9ff;
+  }
+  .promo-text strong {
+    font-size: 1.05rem;
+    font-weight: 800;
+  }
+  .promo-sub {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .promo-cta {
+    flex: none;
+    background: var(--primary);
+    color: #002600;
+    font-weight: 800;
+    font-size: 0.82rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 10px;
+  }
   .row {
     margin-bottom: 0.4rem;
   }
@@ -250,8 +301,9 @@
     padding: 2rem 1rem;
   }
   .foot {
+    margin-top: auto;
     text-align: center;
-    padding: 0.6rem 1rem 1rem;
+    padding: 1rem 1rem 0.6rem;
     font-size: 0.66rem;
     line-height: 1.5;
   }

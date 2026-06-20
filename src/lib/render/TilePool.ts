@@ -1,18 +1,20 @@
 import { Container, Graphics, Text, TextStyle } from 'pixi.js';
 import { skinFor } from '../skins';
+import { drawSymbol } from './symbols';
 
 /**
  * A reusable, retained-mode board tile. Created once and re-skinned in place so a
  * tumble step or fresh spin never allocates a Text/Graphics (the old renderer's
  * worst GC offender, and costly on iOS Safari).
  *
- * Cells can be non-square (taller than wide) so boards fill tall phone screens
- * instead of floating as a small square — width and height are passed in.
+ * The symbol artwork is crisp vector graphics (render/symbols.ts), not emoji.
+ * Cells can be non-square so boards fill tall phone screens.
  */
 export class Tile {
   readonly view = new Container();
   private shadow = new Graphics();
   private body = new Graphics();
+  private icon = new Graphics();
   private glyph: Text;
   private symbol = '';
   private w: number;
@@ -29,17 +31,21 @@ export class Tile {
 
     const style = new TextStyle({
       fill: 0xffffff,
-      fontSize: Math.min(w, h) * 0.52,
+      fontSize: Math.min(w, h) * 0.46,
       fontWeight: '800',
-      fontFamily: 'system-ui, sans-serif',
-      stroke: { color: 0x000000, width: Math.min(w, h) * 0.04, alpha: 0.35 },
-      dropShadow: { color: 0x000000, alpha: 0.4, blur: 2, distance: 2, angle: Math.PI / 2 }
+      fontFamily: 'Inter, system-ui, sans-serif',
+      stroke: { color: 0x10203a, width: Math.min(w, h) * 0.05, alpha: 0.4 },
+      dropShadow: { color: 0x000000, alpha: 0.45, blur: 2, distance: 2, angle: Math.PI / 2 }
     });
     this.glyph = new Text({ text: '', style });
     this.glyph.anchor.set(0.5);
     this.glyph.position.set(w / 2, h / 2);
 
-    this.view.addChild(this.shadow, this.body, this.glyph);
+    // The vector icon is drawn into its own Graphics, centered on the tile.
+    this.icon.position.set(w / 2 - Math.min(w, h) / 2, h / 2 - Math.min(w, h) / 2);
+    this.icon.scale.set(1);
+
+    this.view.addChild(this.shadow, this.body, this.icon, this.glyph);
     this.view.pivot.set(w / 2, h / 2);
   }
 
@@ -62,9 +68,16 @@ export class Tile {
       this.body.roundRect(2.5, 2.5, w - 5, h - 5, r - 2).stroke({ width: 2, color: 0xffe39a, alpha: 0.95 });
     }
 
-    this.glyph.text = skin.glyph;
-    const long = skin.glyph.length > 2;
-    (this.glyph.style as TextStyle).fontSize = (long ? 0.3 : 0.56) * Math.min(w, h);
+    if (skin.motif === 'text') {
+      const label = skin.label ?? '?';
+      this.icon.clear();
+      this.glyph.visible = true;
+      this.glyph.text = label;
+      (this.glyph.style as TextStyle).fontSize = (label.length > 2 ? 0.3 : 0.56) * Math.min(w, h);
+    } else {
+      this.glyph.visible = false;
+      drawSymbol(this.icon, skin.motif, Math.min(w, h));
+    }
   }
 
   get currentSymbol(): string {

@@ -4,6 +4,7 @@
   import BetControl from '$lib/components/BetControl.svelte';
   import GameShell from '$lib/components/GameShell.svelte';
   import GameHeader from '$lib/components/GameHeader.svelte';
+  import WinPopup from '$lib/components/WinPopup.svelte';
   import { mulberry32, randomSeed } from '$engine/rng';
   import { POOL, KRISKS, type KRisk, kenoPaytable, playKeno } from './keno';
   import { sfx } from '$lib/audio';
@@ -20,6 +21,7 @@
   let resultRow = $state<number | null>(null);
   let banner = $state<string | null>(null);
   let flash = $state<string | null>(null);
+  let winPopup = $state<{ amount: number; label: string; accent: string } | null>(null);
 
   const paytable = $derived(kenoPaytable(Math.max(1, selected.length), risk));
   const payEntries = $derived(
@@ -62,6 +64,7 @@
       return;
     }
     busy = true;
+    winPopup = null;
     revealed = new Set();
     liveMatches = 0;
     resultRow = null;
@@ -88,13 +91,15 @@
     if (payout > 0) balance.update((b) => b + payout);
     resultRow = res.matchCount;
 
-    if (res.multiplier >= 10) {
+    if (res.multiplier >= 5) {
       sfx.bigWin();
-      banner = `${res.multiplier}× · ${fmt(payout)}`;
+      const label = res.multiplier >= 100 ? 'MEGA WIN' : res.multiplier >= 20 ? 'BIG WIN' : 'NICE WIN';
+      const accent = res.multiplier >= 100 ? '#f1c232' : res.multiplier >= 20 ? '#19c3c9' : '#1fd35b';
+      winPopup = { amount: payout, label, accent };
     } else if (payout > 0) {
       banner = `+${fmt(payout)}`;
+      setTimeout(() => (banner = null), 1600);
     }
-    if (banner) setTimeout(() => (banner = null), 1600);
 
     void recordSpin({
       timestamp: Date.now(),
@@ -179,6 +184,10 @@
     </section>
   {/snippet}
 </GameShell>
+
+{#if winPopup}
+  <WinPopup amount={winPopup.amount} label={winPopup.label} accent={winPopup.accent} onClose={() => (winPopup = null)} />
+{/if}
 
 <style>
   .board {

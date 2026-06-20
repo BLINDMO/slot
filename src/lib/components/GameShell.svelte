@@ -53,9 +53,13 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
   }
   .gs-controls {
     flex: 0 0 auto;
-    padding-bottom: env(safe-area-inset-bottom);
+    /* Clear the iOS home-indicator gesture bar. env() resolves to 0 in a Safari
+       tab / emulator, so keep a comfortable base gap via max(). */
+    padding-bottom: max(0.9rem, env(safe-area-inset-bottom));
   }
 </style>

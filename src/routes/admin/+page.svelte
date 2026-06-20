@@ -5,6 +5,8 @@
   import { GAMES } from '$games/index';
   import { INSTANT_GAMES } from '$lib/instant/registry';
   import { settings } from '$store/state';
+  import GameShell from '$lib/components/GameShell.svelte';
+  import BottomNav from '$lib/components/BottomNav.svelte';
 
   // Slots + instant games share the same telemetry; list both here.
   const allMeta = [...GAMES.map((g) => g.meta), ...INSTANT_GAMES].filter((m) => m.playable);
@@ -88,11 +90,15 @@
   }
 </script>
 
-<header class="bar">
-  <button class="back btn" onclick={() => goto(`${base}/`)} aria-label="Back">‹</button>
-  <div class="title">Admin · Game Performance</div>
-</header>
+<GameShell scroll>
+  {#snippet header()}
+    <header class="bar">
+      <button class="back btn" onclick={() => goto(`${base}/`)} aria-label="Back">‹</button>
+      <div class="title">Admin · Game Performance</div>
+    </header>
+  {/snippet}
 
+  {#snippet canvas()}
 {#if !unlocked}
   <div class="gate">
     <h2>{needsSetup ? 'Set an admin PIN' : 'Enter admin PIN'}</h2>
@@ -204,13 +210,19 @@
     <button class="btn" onclick={hardReset}>Reset balance & stats</button>
   </div>
 {/if}
+  {/snippet}
+
+  {#snippet controls()}
+    <BottomNav active="stats" />
+  {/snippet}
+</GameShell>
 
 <style>
   .bar {
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    padding: 0.8rem 1rem;
+    padding: 0.6rem 0.9rem;
   }
   .back {
     font-size: 1.4rem;
@@ -221,12 +233,15 @@
     font-weight: 700;
   }
   .gate {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
     align-items: center;
-    padding: 3rem 1.5rem;
+    justify-content: center;
+    padding: 2rem 1.5rem;
     text-align: center;
+    min-height: 60vh;
   }
   .pin {
     font-size: 1.6rem;
