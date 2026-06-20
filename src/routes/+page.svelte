@@ -43,47 +43,37 @@
     </a>
 
     {#if originals.length}
-      <section class="row">
-        <div class="rowhead"><h2>Originals</h2><span class="count">{originals.length}</span></div>
-        <div class="cards">
-          {#each originals as g (g.id)}
-            <a class="card" href="{base}/instant/{g.id}" style="--c:{g.color}">
-              <div class="thumb">
-                <span class="art"><GameArt id={g.id} /></span>
-                <span class="rtp">99% RTP</span>
-                <div class="scrim"><strong>{g.title}</strong></div>
-              </div>
-            </a>
-          {/each}
-        </div>
-      </section>
+      <div class="rowhead"><h2>Originals</h2><span class="count">{originals.length}</span></div>
+      <div class="grid">
+        {#each originals as g (g.id)}
+          <a class="card" href="{base}/instant/{g.id}" style="--c:{g.color}">
+            <span class="art"><GameArt id={g.id} /></span>
+            <span class="rtp">99% RTP</span>
+            <div class="scrim"><strong>{g.title}</strong></div>
+          </a>
+        {/each}
+      </div>
     {/if}
 
     {#if slots.length}
-      <section class="row">
-        <div class="rowhead"><h2>Slots</h2><span class="count">{slots.length}</span></div>
-        <div class="cards">
-          {#each slots as g (g.meta.id)}
-            {#if g.meta.playable}
-              <a class="card" href="{base}/play/{g.meta.id}" style="--c:{g.meta.color}">
-                <div class="thumb">
-                  <span class="art"><GameArt id={g.meta.id} /></span>
-                  <span class="rtp">{(g.meta.targetRtp * 100).toFixed(1)}%</span>
-                  <div class="scrim"><strong>{g.meta.title}</strong></div>
-                </div>
-              </a>
-            {:else}
-              <div class="card soon" style="--c:{g.meta.color}">
-                <div class="thumb">
-                  <span class="art"><GameArt id={g.meta.id} /></span>
-                  <span class="lock">Soon</span>
-                  <div class="scrim"><strong>{g.meta.title}</strong></div>
-                </div>
-              </div>
-            {/if}
-          {/each}
-        </div>
-      </section>
+      <div class="rowhead"><h2>Slots</h2><span class="count">{slots.length}</span></div>
+      <div class="grid">
+        {#each slots as g (g.meta.id)}
+          {#if g.meta.playable}
+            <a class="card" href="{base}/play/{g.meta.id}" style="--c:{g.meta.color}">
+              <span class="art"><GameArt id={g.meta.id} /></span>
+              <span class="rtp">{(g.meta.targetRtp * 100).toFixed(1)}%</span>
+              <div class="scrim"><strong>{g.meta.title}</strong></div>
+            </a>
+          {:else}
+            <div class="card soon" style="--c:{g.meta.color}">
+              <span class="art"><GameArt id={g.meta.id} /></span>
+              <span class="lock">Soon</span>
+              <div class="scrim"><strong>{g.meta.title}</strong></div>
+            </div>
+          {/if}
+        {/each}
+      </div>
     {/if}
 
     {#if !originals.length && !slots.length}
@@ -196,92 +186,84 @@
     padding: 0.5rem 0.9rem;
     border-radius: 10px;
   }
-  .row {
-    margin-bottom: 0.4rem;
-  }
   .rowhead {
     display: flex;
     align-items: center;
     gap: 0.45rem;
-    padding: 0.6rem 0.85rem 0.45rem;
+    padding: 0.55rem 0.9rem 0.45rem;
   }
   .rowhead h2 {
     margin: 0;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 700;
   }
   .count {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     color: var(--muted);
-    background: var(--panel);
+    background: var(--glass);
+    border: 1px solid var(--line);
     border-radius: 999px;
     padding: 0.05rem 0.45rem;
   }
 
-  .cards {
-    display: flex;
+  /* Uniform 2-column grid: every card identical, symmetrical, fills the width. */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.6rem;
-    overflow-x: auto;
-    padding: 0 0.85rem 0.3rem;
-    scroll-snap-type: x proximity;
-    -webkit-overflow-scrolling: touch;
+    padding: 0 0.9rem 0.4rem;
   }
   .card {
-    flex: 0 0 auto;
-    width: 120px;
-    scroll-snap-align: start;
-    border-radius: 14px;
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 16px;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(120% 85% at 50% -10%, color-mix(in srgb, var(--c) 65%, transparent), transparent 62%),
+      linear-gradient(180deg, color-mix(in srgb, var(--c) 26%, #0e0b22), #0a0816);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 45%, transparent), var(--shadow-1);
     transition: transform 0.1s ease, box-shadow 0.2s ease;
   }
   .card:active {
     transform: scale(0.96);
   }
   .card:not(.soon):hover {
-    box-shadow: 0 0 26px color-mix(in srgb, var(--c) 50%, transparent);
-  }
-  .thumb {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 3 / 4;
-    border-radius: 14px;
-    overflow: hidden;
-    display: grid;
-    place-items: center;
-    background:
-      radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--c) 70%, transparent), transparent 60%),
-      linear-gradient(180deg, color-mix(in srgb, var(--c) 30%, #0e0b22), #0a0816);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 45%, transparent), var(--shadow-1);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--c) 70%, transparent),
+      0 0 26px color-mix(in srgb, var(--c) 45%, transparent);
   }
   .art {
     color: #fff;
     opacity: 0.96;
     filter: drop-shadow(0 0 12px color-mix(in srgb, var(--c) 70%, transparent))
       drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
-    transform: translateY(-6px);
+    transform: translateY(-6px) scale(1.15);
   }
   .rtp {
     position: absolute;
-    top: 0.4rem;
-    left: 0.4rem;
-    font-size: 0.55rem;
+    top: 0.5rem;
+    left: 0.5rem;
+    font-size: 0.58rem;
     font-weight: 700;
     color: #cfe9ff;
     background: rgba(0, 0, 0, 0.45);
     border-radius: 6px;
-    padding: 0.12rem 0.35rem;
+    padding: 0.12rem 0.4rem;
   }
   .lock {
     position: absolute;
-    top: 0.4rem;
-    right: 0.4rem;
-    font-size: 0.55rem;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.58rem;
     font-weight: 700;
     color: var(--gold);
     background: rgba(0, 0, 0, 0.5);
     border-radius: 6px;
-    padding: 0.12rem 0.35rem;
+    padding: 0.12rem 0.4rem;
   }
-  .soon .thumb {
+  .soon {
     filter: grayscale(0.7) brightness(0.62);
   }
   .scrim {
@@ -289,14 +271,11 @@
     left: 0;
     right: 0;
     bottom: 0;
-    padding: 0.9rem 0.5rem 0.4rem;
+    padding: 1.1rem 0.6rem 0.5rem;
     background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.82));
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
   }
   .scrim strong {
-    font-size: 0.74rem;
+    font-size: 0.82rem;
     font-weight: 700;
     line-height: 1.15;
   }
@@ -308,7 +287,7 @@
   .foot {
     margin-top: auto;
     text-align: center;
-    padding: 1rem 1rem 0.6rem;
+    padding: 0.9rem 1rem 0.5rem;
     font-size: 0.66rem;
     line-height: 1.5;
   }
