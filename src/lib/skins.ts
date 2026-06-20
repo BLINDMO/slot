@@ -23,33 +23,33 @@ export type Skin = Record<string, SymbolSkin>;
 
 export const SKINS: Record<string, Skin> = {
   blackwaterBay: {
-    L1: { color: 0x2f7d6b, motif: 'coin' },
-    L2: { color: 0x356d8a, motif: 'compass' },
-    L3: { color: 0x7a5ca8, motif: 'sword' },
-    H1: { color: 0xd64545, motif: 'skull', special: true },
-    H2: { color: 0xc98a2b, motif: 'anchor', special: true },
-    W: { color: 0x2fbf71, motif: 'text', label: 'WILD', special: true },
-    S: { color: 0xe8c468, motif: 'text', label: 'BONUS', special: true }
+    L1: { color: 0xffd24a, motif: 'coin' },
+    L2: { color: 0x4fd0ff, motif: 'compass' },
+    L3: { color: 0xc9d4e6, motif: 'sword' },
+    H1: { color: 0xff3d9a, motif: 'skull', special: true },
+    H2: { color: 0x2ee6ff, motif: 'anchor', special: true },
+    W: { color: 0x27ff8d, motif: 'text', label: 'WILD', special: true },
+    S: { color: 0xffd24a, motif: 'text', label: 'BONUS', special: true }
   },
   highNoon: {
-    L1: { color: 0x4f6a8a, motif: 'spade' },
-    L2: { color: 0xa14a3a, motif: 'heart' },
-    L3: { color: 0x3f7d8a, motif: 'diamond' },
-    L4: { color: 0x5b7a3f, motif: 'club' },
-    H1: { color: 0xe0a83d, motif: 'star', special: true },
-    H2: { color: 0xb5651d, motif: 'revolver', special: true },
-    H3: { color: 0x9b3b2f, motif: 'hat', special: true },
-    WILD: { color: 0x2fbf71, motif: 'text', label: 'WILD', special: true },
-    VS: { color: 0xe6504f, motif: 'text', label: 'VS', special: true }
+    L1: { color: 0xc9d4e6, motif: 'spade' },
+    L2: { color: 0xff4d6d, motif: 'heart' },
+    L3: { color: 0x4fd0ff, motif: 'diamond' },
+    L4: { color: 0x52e08a, motif: 'club' },
+    H1: { color: 0xffd24a, motif: 'star', special: true },
+    H2: { color: 0xc9d4e6, motif: 'revolver', special: true },
+    H3: { color: 0xff9d3d, motif: 'hat', special: true },
+    WILD: { color: 0x27ff8d, motif: 'text', label: 'WILD', special: true },
+    VS: { color: 0xff3d9a, motif: 'text', label: 'VS', special: true }
   },
   luckySevens: {
-    CHERRY: { color: 0xd64545, motif: 'cherry' },
-    LEMON: { color: 0xe0b53d, motif: 'lemon' },
-    PLUM: { color: 0x8a4fd0, motif: 'grape' },
-    BELL: { color: 0xe8c468, motif: 'bell', special: true },
-    BAR: { color: 0x3f5d7a, motif: 'text', label: 'BAR', special: true },
-    SEVEN: { color: 0xd64545, motif: 'text', label: '7', special: true },
-    WILD: { color: 0x2fbf71, motif: 'gem', special: true }
+    CHERRY: { color: 0xff4d5e, motif: 'cherry' },
+    LEMON: { color: 0xffd84a, motif: 'lemon' },
+    PLUM: { color: 0xb07bff, motif: 'grape' },
+    BELL: { color: 0xffd24a, motif: 'bell', special: true },
+    BAR: { color: 0x2ee6ff, motif: 'text', label: 'BAR', special: true },
+    SEVEN: { color: 0xff4d6d, motif: 'text', label: '7', special: true },
+    WILD: { color: 0x2ee6ff, motif: 'gem', special: true }
   }
 };
 

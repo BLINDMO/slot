@@ -228,30 +228,35 @@
   }
   .card {
     flex: 0 0 auto;
-    width: 118px;
+    width: 120px;
     scroll-snap-align: start;
-    border-radius: 10px;
-    transition: transform 0.08s ease;
+    border-radius: 14px;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
   }
   .card:active {
-    transform: scale(0.97);
+    transform: scale(0.96);
+  }
+  .card:not(.soon):hover {
+    box-shadow: 0 0 26px color-mix(in srgb, var(--c) 50%, transparent);
   }
   .thumb {
     position: relative;
     width: 100%;
     aspect-ratio: 3 / 4;
-    border-radius: 10px;
+    border-radius: 14px;
     overflow: hidden;
     display: grid;
     place-items: center;
     background:
-      radial-gradient(120% 90% at 30% 12%, color-mix(in srgb, var(--c) 85%, black 0%), #0b1922 92%);
-    box-shadow: var(--shadow-1);
+      radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--c) 70%, transparent), transparent 60%),
+      linear-gradient(180deg, color-mix(in srgb, var(--c) 30%, #0e0b22), #0a0816);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 45%, transparent), var(--shadow-1);
   }
   .art {
     color: #fff;
-    opacity: 0.95;
-    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+    opacity: 0.96;
+    filter: drop-shadow(0 0 12px color-mix(in srgb, var(--c) 70%, transparent))
+      drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
     transform: translateY(-6px);
   }
   .rtp {

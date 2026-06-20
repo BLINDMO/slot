@@ -2,6 +2,7 @@
   import '../app.css';
   import { onMount } from 'svelte';
   import { initState } from '$store/state';
+  import AuroraBg from '$lib/components/AuroraBg.svelte';
 
   let { children } = $props();
 
@@ -9,6 +10,8 @@
     void initState();
   });
 </script>
+
+<AuroraBg />
 
 <main>
   {@render children()}
@@ -34,6 +37,7 @@
     /* The ONE full-height container — 100% of the locked body. Every page fills
        it; there is no other element claiming viewport height anywhere. */
     position: relative;
+    z-index: 1;
     height: 100%;
     max-width: 480px;
     margin: 0 auto;

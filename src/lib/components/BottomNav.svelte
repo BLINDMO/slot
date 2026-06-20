@@ -31,8 +31,10 @@
     display: flex;
     justify-content: space-around;
     align-items: stretch;
-    background: var(--bg-2);
+    background: rgba(10, 8, 22, 0.6);
     border-top: 1px solid var(--line);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
   .item {
     flex: 1;

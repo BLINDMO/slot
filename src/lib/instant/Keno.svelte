@@ -211,7 +211,7 @@
   .tile {
     aspect-ratio: 1;
     border-radius: 12px;
-    background: linear-gradient(180deg, #1c2336, #141a27);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
     border: 1px solid var(--line);
     color: var(--text);
     font-weight: 700;
@@ -222,16 +222,16 @@
     transform: scale(0.92);
   }
   .tile.pick {
-    background: linear-gradient(180deg, #2bd4da, #138e93);
-    border-color: #2bd4da;
-    color: #04210f;
-    box-shadow: 0 0 14px rgba(43, 212, 218, 0.5);
+    background: linear-gradient(180deg, #41e8ff, #1188c4);
+    border-color: #7af2ff;
+    color: #022430;
+    box-shadow: 0 0 18px rgba(46, 230, 255, 0.6);
   }
   .tile.hit {
-    background: linear-gradient(180deg, #44e08a, #1f9457);
-    border-color: #6dffb0;
-    color: #04210f;
-    box-shadow: 0 0 16px rgba(68, 224, 138, 0.7);
+    background: linear-gradient(180deg, #5cffa6, var(--primary-700));
+    border-color: #9affc9;
+    color: #00210f;
+    box-shadow: 0 0 20px rgba(39, 255, 141, 0.75);
     animation: hit 0.3s ease;
   }
   .tile.miss {
@@ -323,6 +323,8 @@
     flex: none;
     background: var(--panel-grad);
     border-top: 1px solid var(--line);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     padding: 0.55rem 0.7rem;
   }
   .rowctrl {

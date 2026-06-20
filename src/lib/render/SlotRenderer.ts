@@ -103,19 +103,18 @@ export class SlotRenderer {
     return this.gap + row * (this.tileH + this.gap) + this.tileH / 2;
   }
 
-  /** Soft themed background: accent glow, frame, vignette, drifting motes. */
+  /** Aurora-tinted board backdrop: accent glow bloom + vignette + drifting motes. */
   private drawBackground(): void {
     const { w, h } = this;
     const g = new Graphics();
-    // Deep base wash so the board reads against it.
-    g.roundRect(0, 0, w, h, 16).fill({ color: 0x070a12, alpha: 0.55 });
-    // Accent glow from the top, stacked translucent circles.
-    for (let i = 9; i >= 1; i--) {
-      g.circle(w / 2, h * 0.1, (i / 9) * w * 0.95).fill({ color: this.accent, alpha: 0.05 });
+    // Let the page aurora read through faintly.
+    g.roundRect(0, 0, w, h, 16).fill({ color: 0x0a0818, alpha: 0.4 });
+    // Accent bloom from the top, stacked translucent circles.
+    for (let i = 10; i >= 1; i--) {
+      g.circle(w / 2, h * 0.06, (i / 10) * w * 1.05).fill({ color: this.accent, alpha: 0.045 });
     }
-    // Gold-ish frame + inner vignette.
-    g.roundRect(2, 2, w - 4, h - 4, 14).stroke({ width: 2, color: lighten(this.accent, 0.4), alpha: 0.5 });
-    g.roundRect(0, 0, w, h, 16).stroke({ width: 26, color: 0x000000, alpha: 0.22 });
+    // Soft inner vignette (no hard frame).
+    g.roundRect(0, 0, w, h, 16).stroke({ width: 30, color: 0x000000, alpha: 0.28 });
     this.bgLayer.addChild(g);
 
     for (let i = 0; i < 14; i++) {
@@ -325,11 +324,4 @@ const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 function parseHex(css: string): number {
   return parseInt(css.replace('#', ''), 16) || 0x1f9e89;
-}
-
-function lighten(color: number, amt: number): number {
-  const r = Math.min(255, ((color >> 16) & 0xff) + 255 * amt);
-  const g = Math.min(255, ((color >> 8) & 0xff) + 255 * amt);
-  const b = Math.min(255, (color & 0xff) + 255 * amt);
-  return (r << 16) | (g << 8) | b;
 }

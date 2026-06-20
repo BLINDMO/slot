@@ -250,12 +250,14 @@
   }
   .meter .win strong {
     font-family: var(--font-display);
-    font-size: 1.5rem;
+    font-weight: 800;
+    font-size: 1.55rem;
     color: var(--muted);
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
   }
   .meter .win.has strong {
     color: var(--good);
+    text-shadow: 0 0 18px color-mix(in srgb, var(--good) 70%, transparent);
   }
   .bonus {
     flex: 1;
@@ -283,9 +285,10 @@
     display: grid;
     place-items: center;
     background:
-      radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--c) 26%, transparent), transparent 60%),
-      radial-gradient(100% 100% at 50% 100%, rgba(0, 0, 0, 0.45), transparent 55%),
-      var(--bg-2);
+      radial-gradient(130% 80% at 50% -5%, color-mix(in srgb, var(--c) 40%, transparent), transparent 55%),
+      radial-gradient(80% 60% at 15% 110%, color-mix(in srgb, var(--magenta) 16%, transparent), transparent 60%),
+      radial-gradient(80% 60% at 85% 110%, color-mix(in srgb, var(--cyan) 14%, transparent), transparent 60%),
+      #0a0816;
   }
 
   .overlay {
@@ -308,7 +311,9 @@
     background: var(--panel-grad);
     border-top: 1px solid var(--line);
     padding: 0.6rem 0.7rem;
-    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
   .controls {
     display: grid;

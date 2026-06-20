@@ -379,6 +379,8 @@
     flex: none;
     background: var(--panel-grad);
     border-top: 1px solid var(--line);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     padding: 0.6rem 0.7rem;
   }
   .rowctrl {

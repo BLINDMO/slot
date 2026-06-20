@@ -32,51 +32,60 @@ export class Tile {
     const style = new TextStyle({
       fill: 0xffffff,
       fontSize: Math.min(w, h) * 0.46,
-      fontWeight: '800',
+      fontWeight: '900',
       fontFamily: 'Inter, system-ui, sans-serif',
-      stroke: { color: 0x10203a, width: Math.min(w, h) * 0.05, alpha: 0.4 },
-      dropShadow: { color: 0x000000, alpha: 0.45, blur: 2, distance: 2, angle: Math.PI / 2 }
+      dropShadow: { color: 0x000000, alpha: 0.5, blur: 3, distance: 2, angle: Math.PI / 2 }
     });
     this.glyph = new Text({ text: '', style });
     this.glyph.anchor.set(0.5);
     this.glyph.position.set(w / 2, h / 2);
 
-    // The vector icon is drawn into its own Graphics, centered on the tile.
-    this.icon.position.set(w / 2 - Math.min(w, h) / 2, h / 2 - Math.min(w, h) / 2);
-    this.icon.scale.set(1);
+    // The vector icon is drawn into its own Graphics, centered & slightly larger.
+    const s = Math.min(w, h) * 1.06;
+    this.icon.position.set(w / 2 - s / 2, h / 2 - s / 2);
+    this.iconSize = s;
 
     this.view.addChild(this.shadow, this.body, this.icon, this.glyph);
     this.view.pivot.set(w / 2, h / 2);
   }
+
+  private iconSize = 64;
 
   setSymbol(symbol: string): void {
     if (symbol === this.symbol) return;
     this.symbol = symbol;
     const skin = skinFor(this.gameId, symbol);
     const { w, h } = this;
-    const r = Math.round(Math.min(w, h) * 0.18);
+    const r = Math.round(Math.min(w, h) * 0.2);
     const c = skin.color;
 
+    // Dark glass gem cell with a neon edge tinted by the symbol's accent colour.
     this.body.clear();
-    this.body.roundRect(0, 0, w, h, r).fill(c);
-    this.body.roundRect(0, 0, w, h * 0.56, r).fill({ color: lighten(c, 0.2), alpha: 0.9 });
-    this.body.rect(0, h * 0.62, w, h * 0.38).fill({ color: darken(c, 0.28), alpha: 0.55 });
-    this.body.ellipse(w * 0.5, h * 0.2, w * 0.34, h * 0.13).fill({ color: 0xffffff, alpha: 0.22 });
-    this.body.roundRect(1.5, 1.5, w - 3, h - 3, r - 1).stroke({ width: 1.5, color: lighten(c, 0.5), alpha: 0.35 });
-    this.body.roundRect(0.5, 0.5, w - 1, h - 1, r).stroke({ width: 1.5, color: darken(c, 0.45), alpha: 0.7 });
-    if (skin.special) {
-      this.body.roundRect(2.5, 2.5, w - 5, h - 5, r - 2).stroke({ width: 2, color: 0xffe39a, alpha: 0.95 });
-    }
+    // soft outer glow halo in the accent colour
+    this.body.roundRect(-3, -2, w + 6, h + 6, r + 3).fill({ color: c, alpha: skin.special ? 0.16 : 0.08 });
+    // glass base (deep indigo tinted with the accent)
+    this.body.roundRect(0, 0, w, h, r).fill(mix(0x120e26, c, 0.16));
+    // top vertical sheen
+    this.body.roundRect(0, 0, w, h * 0.5, r).fill({ color: 0xffffff, alpha: 0.06 });
+    this.body.ellipse(w * 0.5, h * 0.16, w * 0.4, h * 0.1).fill({ color: 0xffffff, alpha: 0.1 });
+    // inner light rim + neon edge
+    this.body.roundRect(1.5, 1.5, w - 3, h - 3, r - 1).stroke({ width: 1.2, color: 0xffffff, alpha: 0.12 });
+    this.body.roundRect(0.75, 0.75, w - 1.5, h - 1.5, r).stroke({
+      width: skin.special ? 2.4 : 1.6,
+      color: c,
+      alpha: skin.special ? 0.95 : 0.7
+    });
 
     if (skin.motif === 'text') {
       const label = skin.label ?? '?';
       this.icon.clear();
       this.glyph.visible = true;
       this.glyph.text = label;
-      (this.glyph.style as TextStyle).fontSize = (label.length > 2 ? 0.3 : 0.56) * Math.min(w, h);
+      (this.glyph.style as TextStyle).fill = c;
+      (this.glyph.style as TextStyle).fontSize = (label.length > 2 ? 0.32 : 0.62) * Math.min(w, h);
     } else {
       this.glyph.visible = false;
-      drawSymbol(this.icon, skin.motif, Math.min(w, h));
+      drawSymbol(this.icon, skin.motif, this.iconSize);
     }
   }
 
@@ -127,15 +136,12 @@ export class TilePool {
   }
 }
 
-function lighten(color: number, amt: number): number {
-  const r = Math.min(255, ((color >> 16) & 0xff) + 255 * amt);
-  const g = Math.min(255, ((color >> 8) & 0xff) + 255 * amt);
-  const b = Math.min(255, (color & 0xff) + 255 * amt);
-  return (r << 16) | (g << 8) | b;
-}
-function darken(color: number, amt: number): number {
-  const r = Math.max(0, ((color >> 16) & 0xff) * (1 - amt));
-  const g = Math.max(0, ((color >> 8) & 0xff) * (1 - amt));
-  const b = Math.max(0, (color & 0xff) * (1 - amt));
-  return (r << 16) | (g << 8) | b;
+/** Blend `a` toward `b` by t (0..1). */
+function mix(a: number, b: number, t: number): number {
+  const ar = (a >> 16) & 0xff, ag = (a >> 8) & 0xff, ab = a & 0xff;
+  const br = (b >> 16) & 0xff, bg = (b >> 8) & 0xff, bb = b & 0xff;
+  const r = Math.round(ar + (br - ar) * t);
+  const g = Math.round(ag + (bg - ag) * t);
+  const bl = Math.round(ab + (bb - ab) * t);
+  return (r << 16) | (g << 8) | bl;
 }
